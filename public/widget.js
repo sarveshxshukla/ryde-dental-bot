@@ -7,6 +7,8 @@
   if (!SID) { SID = "s_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); localStorage.setItem("rdf_sid", SID); }
   var LOGKEY = "rdf_log_" + SID;
   var msgs = []; try { msgs = JSON.parse(localStorage.getItem(LOGKEY) || "[]"); } catch (e) {}
+  var savedName = ""; try { savedName = localStorage.getItem("rdf_intake") || ""; } catch (e) {}
+  var intakeDone = !!savedName;
   var rendered = {};   // ts -> already in the DOM
   var seen = {};       // ts -> already known (event de-dupe)
   msgs.forEach(function (m) { if (m.ts) seen[m.ts] = 1; });
@@ -59,6 +61,14 @@
     ".rdf-seg{display:flex;gap:8px}.rdf-seg button{flex:1;padding:10px;border:1px solid " + C.line + ";background:#fff;border-radius:10px;cursor:pointer;font-size:13px;color:" + C.muted + "}.rdf-seg button.on{background:" + C.teal + ";color:#EAFBF8;border-color:" + C.teal + "}" +
     ".rdf-fbtn{padding:12px;border:none;border-radius:10px;background:" + C.coral + ";color:#fff;font-weight:700;cursor:pointer;font-size:14px}" +
     ".rdf-fn{font-size:11px;color:" + C.muted + ";text-align:center}" +
+    "#rdf-intake{padding:16px;overflow-y:auto;animation:rdfin .2s ease}" +
+    ".rdf-iw{display:flex;flex-direction:column;gap:9px}" +
+    ".rdf-it{font-weight:700;font-size:14.5px;color:" + C.ink + ";line-height:1.45}" +
+    ".rdf-isub{font-size:12px;color:" + C.muted + ";margin:-4px 0 4px;line-height:1.45}" +
+    ".rdf-ita{min-height:58px;resize:vertical;font-family:inherit}" +
+    ".rdf-consent{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:" + C.muted + ";line-height:1.4;cursor:pointer}" +
+    ".rdf-consent input{margin-top:1px;width:16px;height:16px;flex-shrink:0;accent-color:" + C.teal + "}" +
+    ".rdf-ierr{font-size:12px;color:#C0392B;min-height:14px}" +
     "@keyframes rdfspin{to{transform:rotate(360deg)}}";
 
   var spark = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2.2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>';
@@ -203,6 +213,46 @@
     };
   }
 
+  // --- intake form: capture name/mobile/email up-front, then start the chat ---
+  function showIntake() {
+    body.innerHTML = "";
+    $("rdf-foot").style.display = "none";   // hide the message bar until details are in
+    chipsEl.style.display = "none";
+    var f = el("div"); f.id = "rdf-intake";
+    f.innerHTML = '<div class="rdf-iw">' +
+      '<div class="rdf-it">👋 Hi there! Before we start, who are we chatting with?</div>' +
+      '<div class="rdf-isub">Pop in your details so the team can follow up — then Smily will help with anything you need.</div>' +
+      '<input class="rdf-fi" id="in-name" placeholder="Name *" autocomplete="name"/>' +
+      '<input class="rdf-fi" id="in-phone" placeholder="Mobile *" inputmode="tel" autocomplete="tel"/>' +
+      '<input class="rdf-fi" id="in-email" placeholder="Email *" inputmode="email" autocomplete="email"/>' +
+      '<textarea class="rdf-fi rdf-ita" id="in-msg" placeholder="Your question (optional)"></textarea>' +
+      '<label class="rdf-consent"><input type="checkbox" id="in-consent"/><span>I agree to be contacted by phone or email about my enquiry.</span></label>' +
+      '<button id="in-send" class="rdf-fbtn">Start chat →</button>' +
+      '<div class="rdf-ierr" id="in-err"></div></div>';
+    body.appendChild(f);
+    $("in-send").onclick = submitIntake;
+    try { $("in-name").focus(); } catch (e) {}
+  }
+  function submitIntake() {
+    var name = $("in-name").value.trim(), phone = $("in-phone").value.trim(), email = $("in-email").value.trim(), msg = $("in-msg").value.trim(), consent = $("in-consent").checked;
+    var err = $("in-err");
+    if (!name || !phone || !email) { err.textContent = "Please add your name, mobile and email."; return; }
+    if (!/.+@.+\..+/.test(email)) { err.textContent = "That email doesn't look right."; return; }
+    if (!consent) { err.textContent = "Please tick the box so we can reply to you."; return; }
+    $("in-send").textContent = "Starting…"; $("in-send").disabled = true;
+    fetch(API + "/api/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: SID, name: name, phone: phone, email: email, message: msg }) })
+      .then(function (r) { return r.json(); })
+      .then(function () {
+        try { localStorage.setItem("rdf_intake", name); } catch (e) {}
+        intakeDone = true; savedName = name;
+        var fm = $("rdf-intake"); if (fm) fm.remove();
+        $("rdf-foot").style.display = ""; chipsEl.style.display = "";
+        if (msg) sendMsg(msg);    // their question kicks off the real conversation
+        else push("bot", "Thanks " + name.split(" ")[0] + "! 😊 How can I help you today?", { chips: ["Book a visit", "Meet the dentists", "Opening hours", "Tooth pain"] });
+      })
+      .catch(function () { $("in-send").textContent = "Try again"; $("in-send").disabled = false; });
+  }
+
   // --- voice ---
   function toggleMic() {
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -221,8 +271,9 @@
       prewarm();
       if (!started) {
         started = true;
-        if (!msgs.length) push("bot", "Hey, welcome to Ryde Dental Family 😊 I'm Smily. Ask me anything about our treatments, costs or hours — or tell me what you need and I'll help you book in.", { chips: ["Book a visit", "Meet the dentists", "Tooth pain", "Opening hours"] });
-        else sync();
+        if (msgs.length) sync();                                  // returning visitor with chat history
+        else if (!intakeDone) showIntake();                       // first time → capture details before chatting
+        else push("bot", "Welcome back" + (savedName ? ", " + savedName.split(" ")[0] : "") + "! 😊 How can I help you today?", { chips: ["Book a visit", "Meet the dentists", "Tooth pain", "Opening hours"] });
       }
       poll(); pollTimer = setInterval(poll, 4000);
     } else { clearInterval(pollTimer); }
