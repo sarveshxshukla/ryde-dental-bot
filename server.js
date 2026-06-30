@@ -202,9 +202,12 @@ async function emailTo(toEmail, subject, text) {
 }
 function emailLead(s, lead, type) {
   if (!NOTIFY_ON) return;
-  const subject = (type === "Callback" ? "\ud83d\udcde New callback \u2014 " : "\ud83d\udcc5 New booking \u2014 ") + lead.name;
+  const label = type === "Callback" ? { e: "\ud83d\udcde New callback \u2014 ", w: "callback request" }
+              : type === "Enquiry" ? { e: "\u2709\ufe0f New enquiry \u2014 ", w: "enquiry" }
+              : { e: "\ud83d\udcc5 New booking \u2014 ", w: "booking" };
+  const subject = label.e + lead.name;
   const body =
-    "New " + (type === "Callback" ? "callback request" : "booking") + " from the Smily chatbot:\n\n" +
+    "New " + label.w + " from the Smily chatbot:\n\n" +
     "Name: " + lead.name + "\n" +
     "Mobile: " + lead.phone + "\n" +
     "Email: " + (lead.email || "(not provided)") + "\n" +
@@ -251,7 +254,8 @@ app.post("/api/chat", async (req, res) => {
   if (attachment) s.messages.push({ role: "user", text: "Sent a file: " + String(attachment).slice(0, 120), ts: Date.now(), attach: true });
   if (message) s.messages.push({ role: "user", text: String(message).slice(0, 2000), ts: Date.now() });
   // WhatsApp-style: alert staff on EVERY visitor message, titled with their name once we've learned it
-  pushNotify(s.visitorName ? "\ud83d\udcac " + s.visitorName : "\ud83d\udcac New website message",
+  if (s.skipNextPush) { s.skipNextPush = false; }
+  else pushNotify(s.visitorName ? "\ud83d\udcac " + s.visitorName : "\ud83d\udcac New website message",
              message ? String(message).slice(0, 140) : "\ud83d\udcce Sent a file",
              "rdf-msg-" + s.id);
   maybeResume(s);
@@ -310,8 +314,9 @@ app.get("/api/admin/data", auth, (req, res) => {
     chatsToday: realChats.filter(s => s.createdAt >= now - dayMs).length,
     chatsWeek: realChats.filter(s => s.createdAt >= now - 7 * dayMs).length,
     leads: db.leads.length,
-    bookings: db.leads.filter(l => l.type !== "Callback").length,
+    bookings: db.leads.filter(l => l.type === "Booking").length,
     callbacks: db.leads.filter(l => l.type === "Callback").length,
+    enquiries: db.leads.filter(l => l.type === "Enquiry").length,
     newLeads: db.leads.filter(l => l.status === "New").length,
     humanTakeovers: allSessions.filter(s => s.messages.some(m => m.role === "team")).length,
     byDow,
@@ -409,6 +414,30 @@ app.post("/api/push/test", auth, async (req, res) => {
 // Fast wake-up ping (the widget calls this on page load so the server is awake by the time someone chats)
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
+// Intake form before the conversation: capture the visitor's details up front
+app.post("/api/register", (req, res) => {
+  const name = String(req.body?.name || "").trim().slice(0, 80);
+  const phone = String(req.body?.mobile || req.body?.phone || "").trim().slice(0, 40);
+  const email = String(req.body?.email || "").trim().slice(0, 120);
+  const message = String(req.body?.message || "").trim();
+  const sessionId = req.body?.sessionId;
+  if (!sessionId || !name || !phone) return res.status(400).json({ error: "Name and mobile are required." });
+  const s = getSession(sessionId);
+  s.visitorName = name; s.lastActivity = Date.now();
+  if (!db.leads.some(l => l.sessionId === sessionId)) {
+    db.leads.unshift({
+      id: "RDF-" + Date.now().toString().slice(-6), sessionId, type: "Enquiry",
+      name, phone, email, service: message ? message.slice(0, 120) : "Website enquiry",
+      when: "\u2014", patientType: "\u2014", status: "New", createdAt: Date.now(),
+    });
+    emailLead(s, { name, phone, email, service: message ? message.slice(0, 200) : "Website enquiry" }, "Enquiry");
+  }
+  s.skipNextPush = true;  // the first chat message that follows shouldn't double-alert
+  pushNotify("\ud83d\udcac New enquiry \u2014 " + name, message ? message.slice(0, 140) : "started a chat", "rdf-msg-" + s.id);
+  save();
+  res.json({ ok: true });
+});
+
 // DIRECT booking form / early details capture -> saves a lead (no AI call). Merges if we already have this person.
 app.post("/api/book", (req, res) => {
   const { sessionId, name, phone, email, service, when, patientType } = req.body || {};
@@ -433,6 +462,28 @@ app.post("/api/book", (req, res) => {
   }
   emailLead(s, { name, phone, email: email || "", service: service || "General enquiry", when: when || "Flexible", patientType: patientType || "New patient" }, "Booking");
   pushNotify("New booking \ud83d\udcc5", name + (service ? " \u00b7 " + service : ""), "rdf-lead");
+  save();
+  res.json({ ok: true });
+});
+
+// intake form — capture the visitor's details up-front, before the chat starts
+app.post("/api/start", (req, res) => {
+  const { sessionId, name, phone, email, message } = req.body || {};
+  if (!sessionId || !name || !phone) return res.status(400).json({ error: "name and phone required" });
+  const s = getSession(sessionId);
+  s.visitorName = String(name).slice(0, 80);
+  s.lastActivity = Date.now();
+  if (!db.leads.some(l => l.sessionId === sessionId && l.type === "Enquiry")) {
+    db.leads.unshift({
+      id: "RDF-" + Date.now().toString().slice(-6), sessionId, type: "Enquiry",
+      name: String(name).slice(0, 80), phone: String(phone).slice(0, 40), email: String(email || "").slice(0, 120),
+      service: message ? String(message).slice(0, 200) : "Website enquiry",
+      when: "\u2014", patientType: "\u2014", status: "New", createdAt: Date.now(),
+    });
+  }
+  notify("\ud83d\udcac New website enquiry \u2014 " + name,
+    "Name: " + name + "\nMobile: " + phone + "\nEmail: " + (email || "(not provided)") + "\nMessage: " + (message || "(none yet \u2014 just started the chat)"));
+  pushNotify("\ud83d\udcac New chat \u2014 " + name, message ? String(message).slice(0, 120) : ("\ud83d\udcf1 " + phone), "rdf-msg-" + s.id);
   save();
   res.json({ ok: true });
 });
