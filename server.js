@@ -117,7 +117,7 @@ async function geminiOnce(model, session) {
     body: JSON.stringify({
       system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
       contents,
-      generationConfig: { temperature: 0.6, maxOutputTokens: 800, responseMimeType: "application/json" }, // headroom so the JSON reply never gets cut off mid-output
+      generationConfig: { temperature: 0.6, maxOutputTokens: 800, responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } }, // thinkingBudget:0 turns off the model's slow internal "thinking" — not needed for a simple FAQ/booking bot, so replies come back faster
     }),
   });
   if (!res.ok) { const err = new Error("Gemini " + res.status + ": " + (await res.text()).slice(0, 300)); err.status = res.status; throw err; }
