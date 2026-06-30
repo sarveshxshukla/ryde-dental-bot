@@ -1,0 +1,16 @@
+{
+  "name": "Ryde Dental — Staff Inbox",
+  "short_name": "Ryde Inbox",
+  "description": "Live chat inbox, contacts, reports and reviews for Ryde Dental Family.",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FBF6EF",
+  "theme_color": "#F17A31",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
