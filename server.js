@@ -250,12 +250,16 @@ app.post("/api/chat", async (req, res) => {
   sweepIdle();
   if (attachment) s.messages.push({ role: "user", text: "Sent a file: " + String(attachment).slice(0, 120), ts: Date.now(), attach: true });
   if (message) s.messages.push({ role: "user", text: String(message).slice(0, 2000), ts: Date.now() });
-  if (!s.startNotified) { s.startNotified = true; pushNotify("New chat started \ud83d\udcac", "A visitor just messaged Smily on the website.", "rdf-chat"); }
+  // WhatsApp-style: alert staff on EVERY visitor message, titled with their name once we've learned it
+  pushNotify(s.visitorName ? "\ud83d\udcac " + s.visitorName : "\ud83d\udcac New website message",
+             message ? String(message).slice(0, 140) : "\ud83d\udcce Sent a file",
+             "rdf-msg-" + s.id);
   maybeResume(s);
   if (s.mode === "human") { save(); return res.json({ reply: null, queued: true, mode: "human" }); }
   if (!GEMINI_KEY) { save(); return res.json({ reply: "(Setup needed: add your GEMINI_API_KEY in .env) — meanwhile call us on (02) 9807 9800.", chips: [], mode: "ai" }); }
   try {
     const out = await callGemini(s);
+    if (out.lead?.name) s.visitorName = out.lead.name;   // remember the name for future message alerts
     s.messages.push({ role: "bot", text: out.reply, ts: Date.now() });
     if ((out.action === "book" || out.action === "callback") && out.lead?.name && out.lead?.phone) {
       const type = out.action === "callback" ? "Callback" : "Booking";
