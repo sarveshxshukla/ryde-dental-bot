@@ -299,7 +299,7 @@ app.get("/api/poll", (req, res) => {
 app.get("/api/admin/data", auth, (req, res) => {
   const sessions = Object.values(db.sessions)
     .sort((a, b) => b.lastActivity - a.lastActivity).slice(0, 40)
-    .map(s => ({ id: s.id, mode: s.mode, resumeAt: s.resumeAt, lastActivity: s.lastActivity, messages: s.messages }));
+    .map(s => ({ id: s.id, mode: s.mode, resumeAt: s.resumeAt, lastActivity: s.lastActivity, visitorName: s.visitorName || "", closed: !!s.closed, messages: s.messages }));
 
   // ---- analytics computed over the FULL store (not just the 40 returned above) ----
   const allSessions = Object.values(db.sessions);
@@ -351,6 +351,13 @@ app.post("/api/staff/handback", auth, (req, res) => {
 app.post("/api/admin/lead-status", auth, (req, res) => {
   const l = db.leads.find(x => x.id === req.body?.id);
   if (l) { l.status = req.body.status; save(); }
+  res.json({ ok: true });
+});
+
+// mark a conversation resolved (Closed) or reopen it
+app.post("/api/admin/conversation-status", auth, (req, res) => {
+  const s = db.sessions[req.body?.sessionId];
+  if (s) { s.closed = !!req.body.closed; save(); }
   res.json({ ok: true });
 });
 
