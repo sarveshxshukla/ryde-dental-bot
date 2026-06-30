@@ -43,7 +43,8 @@ a{color:var(--teal)}
 
 /* conversations split */
 #convTab{flex:1;display:flex;min-height:0}
-.list{width:330px;border-right:1px solid var(--line);overflow-y:auto;background:var(--paper);flex-shrink:0}
+.list{width:330px;border-right:1px solid var(--line);background:var(--paper);flex-shrink:0;display:flex;flex-direction:column}
+.convitems{flex:1;overflow-y:auto}
 .citem{padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;gap:10px;align-items:flex-start}
 .citem:hover{background:var(--mint)}
 .citem.sel{background:#FBEFE3;box-shadow:inset 3px 0 0 var(--coral)}
@@ -136,6 +137,33 @@ select{padding:5px 9px;border:1px solid var(--line);border-radius:8px;font-size:
 .hint{font-size:12px;color:var(--muted);margin:8px 0 0;line-height:1.5}
 .rr-item{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
 .rr-item:last-child{border:none}
+/* --- v2: search, segments, quick replies, dark mode, polish --- */
+html[data-theme="dark"]{--ink:#ECE3D6;--paper:#241C16;--mint:#2E2118;--line:#3A2C20;--muted:#A99578;--bg:#1A1410;--coral:#F58A45}
+html[data-theme="dark"] .m.bot{background:#2B2018;border-color:#3A2C20;color:var(--ink)}
+html[data-theme="dark"] .replybar input,html[data-theme="dark"] input,html[data-theme="dark"] textarea,html[data-theme="dark"] select{background:#2B2018;color:var(--ink)}
+html[data-theme="dark"] .citem.sel{background:#33251A}
+html[data-theme="dark"] .m.team{background:#3A2A1E;border-color:#4A3524;color:var(--ink)}
+html[data-theme="dark"] .qrpop,html[data-theme="dark"] .card,html[data-theme="dark"] .panel2,html[data-theme="dark"] .m.sys{background:var(--paper)}
+.iconbtn{background:rgba(255,255,255,.18);border:none;color:#fff;width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:15px;flex-shrink:0}
+.iconbtn:hover{background:rgba(255,255,255,.3)}
+.convtools{padding:9px 10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px;flex-shrink:0;background:var(--paper)}
+.convtools input{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;outline:none;font-size:13px;background:var(--bg);color:var(--ink)}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;padding:7px;border:1px solid var(--line);background:var(--bg);border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted)}
+.seg button.on{background:var(--coral);color:#fff;border-color:var(--coral)}
+.citem.unread .nm{font-weight:800}
+.citem.unread{background:rgba(241,122,49,.06)}
+.qrwrap{position:relative}
+.qr{width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:var(--mint);color:var(--coral);cursor:pointer;font-size:18px;flex-shrink:0}
+.qrpop{position:absolute;bottom:54px;left:0;width:285px;max-height:265px;overflow-y:auto;background:var(--paper);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.18);padding:6px;z-index:20}
+.qrpop .qi{padding:9px 11px;font-size:12.5px;color:var(--ink);border-radius:8px;cursor:pointer;line-height:1.4}
+.qrpop .qi:hover{background:var(--mint)}
+.rsv{margin-left:8px;background:var(--paper);color:var(--green);border:1px solid var(--line);border-radius:9px;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:700}
+.empty2{padding:46px 22px;text-align:center;color:var(--muted);font-size:13.5px;line-height:1.6}
+.empty2 .ico{font-size:34px;display:block;margin-bottom:8px;opacity:.75}
+.m{animation:slidein .18s ease}
+@keyframes slidein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.cl-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--mint);color:var(--muted)}
 input,textarea,select{font-size:16px !important}  /* iOS: 16px stops the zoom-on-tap; smaller text would trigger it */
 </style></head>
 <body>
@@ -157,12 +185,13 @@ input,textarea,select{font-size:16px !important}  /* iOS: 16px stops the zoom-on
       <div class="stat"><b id="s-new">0</b><span>New leads</span></div>
       <div class="stat"><b id="s-cb">0</b><span>Callbacks</span></div>
     </div>
+    <button class="iconbtn" id="themeBtn" title="Toggle dark mode">🌙</button>
     <button class="bell" id="bellBtn">🔔 Enable alerts</button>
     <span class="clock" id="clock"></span>
   </div>
 
   <div class="tabs">
-    <button class="tab on" id="tabConv">💬 Conversations</button>
+    <button class="tab on" id="tabConv">💬 Conversations <span class="pip" id="convUnread" style="display:none">0</span></button>
     <button class="tab" id="tabBook">📥 Bookings <span class="pip" id="bookCount">0</span></button>
     <button class="tab" id="tabCont">👥 Contacts</button>
     <button class="tab" id="tabRep">📊 Reports</button>
@@ -170,7 +199,13 @@ input,textarea,select{font-size:16px !important}  /* iOS: 16px stops the zoom-on
   </div>
 
   <div id="convTab">
-    <div class="list" id="convList"></div>
+    <div class="list">
+      <div class="convtools">
+        <input id="convSearch" placeholder="🔍 Search chats by name or message…" autocomplete="off"/>
+        <div class="seg" id="ocSeg"><button data-oc="open" class="on">Open</button><button data-oc="closed">Closed</button></div>
+      </div>
+      <div class="convitems" id="convList"></div>
+    </div>
     <div class="detail">
       <div id="detailInner" class="nodetail">Select a conversation on the left to read it and reply.</div>
     </div>
@@ -214,7 +249,11 @@ input,textarea,select{font-size:16px !important}  /* iOS: 16px stops the zoom-on
 <script>
 var TOK = localStorage.getItem("rdf_admin_tok") || "";
 var DATA = { sessions: [], leads: [] };
-var selectedId = null, detailCount = 0, lastSeen = {}, leadSig = "", tab = "conv";
+var selectedId = null, detailCount = 0, leadSig = "", tab = "conv";
+var lastSeen = {}; try{ lastSeen=JSON.parse(localStorage.getItem("rdf_seen")||"{}"); }catch(e){}
+function saveSeen(){ try{ localStorage.setItem("rdf_seen",JSON.stringify(lastSeen)); }catch(e){} }
+var ocFilter="open", convQuery="", maxUserTs=0, soundReady=false, actx=null;
+var QUICK=["We\u2019re open Mon\u2013Fri 9\u20135 and Sat 9\u20134 \ud83d\ude0a","Could you please call us on (02) 9807 9800 so we can lock in a time?","Yes, we can definitely help with that! When suits you best?","Thanks for reaching out \u2014 someone from our team will be with you shortly.","We\u2019re in Top Ryde City, Shop 2035, Level LG1, Ryde NSW 2112.","Great news \u2014 you\u2019re all booked in. See you then! \ud83d\ude04"];
 
 function g(id){ return document.getElementById(id); }
 function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -226,6 +265,14 @@ function last(s){ for(var i=s.messages.length-1;i>=0;i--){ if(s.messages[i].role
 g("enter").onclick=function(){ TOK=g("tok").value.trim(); start(); };
 g("tok").addEventListener("keydown",function(e){ if(e.key==="Enter"){ TOK=this.value.trim(); start(); } });
 if(TOK) start();
+
+/* --- v2 wiring: theme, search, open/closed --- */
+function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); try{localStorage.setItem("rdf_theme",t);}catch(e){} var b=g("themeBtn"); if(b) b.textContent= t==="dark"?"\u2600\ufe0f":"\ud83c\udf19"; }
+applyTheme(localStorage.getItem("rdf_theme")||"light");
+g("themeBtn").onclick=function(){ applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark"); };
+g("convSearch").addEventListener("input",function(){ convQuery=this.value; renderList(activeSessions()); });
+g("ocSeg").querySelectorAll("[data-oc]").forEach(function(b){ b.onclick=function(){ ocFilter=b.getAttribute("data-oc"); g("ocSeg").querySelectorAll("[data-oc]").forEach(function(x){x.className="";}); b.className="on"; selectedId=null; g("convTab").classList.remove("show-detail"); renderList(activeSessions()); }; });
+document.addEventListener("click",function(e){ var p=g("qrpop"); if(p && !e.target.closest(".qrwrap")) p.remove(); });
 
 async function start(){
   try{
@@ -271,21 +318,43 @@ function paint(){
   if(tab==="cont") renderContacts(false);
   if(tab==="rep") renderReports();
   if(tab==="rev") renderReviews(false);
+  checkSound(act);
 }
+function checkSound(act){
+  var mx=0, who="", txt="";
+  act.forEach(function(s){ for(var i=s.messages.length-1;i>=0;i--){ var m=s.messages[i]; if(m.role==="user"){ if(m.ts>mx){ mx=m.ts; who=s.visitorName||("Visitor "+s.id.slice(-4)); txt=m.text; } break; } } });
+  if(!soundReady){ soundReady=true; maxUserTs=mx; return; }
+  if(mx>maxUserTs){ maxUserTs=mx; beep(); notifyNew(who,txt); }
+}
+function beep(){ try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)(); if(actx.state==="suspended") actx.resume(); var o=actx.createOscillator(),gn=actx.createGain(); o.connect(gn); gn.connect(actx.destination); o.type="sine"; o.frequency.setValueAtTime(880,actx.currentTime); o.frequency.setValueAtTime(1175,actx.currentTime+0.12); gn.gain.setValueAtTime(0.0001,actx.currentTime); gn.gain.exponentialRampToValueAtTime(0.16,actx.currentTime+0.02); gn.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+0.35); o.start(); o.stop(actx.currentTime+0.36); }catch(e){} }
+function notifyNew(who,txt){ try{ if(document.hidden && window.Notification && Notification.permission==="granted") new Notification("\ud83d\udcac "+who,{body:txt,icon:"/icon-192.png",tag:"rdf-admin-new"}); }catch(e){} }
 
 /* ---- conversation list (safe to rebuild: no inputs here) ---- */
+function isUnread(s){ if(s.id===selectedId) return false; var lm=last(s); return (lastSeen[s.id]||0) < s.messages.length && lm.role==="user"; }
+function initials(s){ if(s.visitorName){ var p=s.visitorName.trim().split(/\s+/); return (((p[0]||"")[0]||"")+((p[1]||"")[0]||"")||s.visitorName[0]).toUpperCase(); } return s.id.slice(-2).toUpperCase(); }
 function renderList(act){
-  var box=g("convList");
-  if(!act.length){ box.innerHTML='<div class="empty">No conversations yet.<br>Open the chat widget in another tab and say hi.</div>'; return; }
-  act.sort(function(a,b){ return b.lastActivity-a.lastActivity; });
+  var box=g("convList"), q=convQuery.trim().toLowerCase();
+  var unreadTotal=0; act.forEach(function(s){ if(isUnread(s)) unreadTotal++; });
+  var pip=g("convUnread"); if(pip){ pip.textContent=unreadTotal; pip.style.display=unreadTotal?"inline-block":"none"; }
+  var listed=act.filter(function(s){
+    if(ocFilter==="open" ? s.closed : !s.closed) return false;
+    if(q){ var nm=(s.visitorName||("visitor "+s.id.slice(-4))).toLowerCase(), lm=last(s); if(nm.indexOf(q)<0 && (lm.text||"").toLowerCase().indexOf(q)<0) return false; }
+    return true;
+  });
+  if(!listed.length){
+    box.innerHTML='<div class="empty2"><span class="ico">'+(q?"\ud83d\udd0d":ocFilter==="closed"?"\u2705":"\ud83d\udcac")+'</span>'+(q?("No chats match \u201c"+esc(convQuery)+"\u201d"):ocFilter==="closed"?"No resolved chats yet.":"No open conversations.<br>Open the chat widget in another tab and say hi.")+'</div>';
+    return;
+  }
+  listed.sort(function(a,b){ return b.lastActivity-a.lastActivity; });
   box.innerHTML="";
-  act.forEach(function(s){
-    var lm=last(s), human=s.mode==="human";
-    var unread = (lastSeen[s.id]||0) < s.messages.length && s.id!==selectedId && lm.role==="user";
-    var d=document.createElement("div"); d.className="citem"+(s.id===selectedId?" sel":"");
-    d.innerHTML='<div class="ava">'+esc(s.id.slice(-2).toUpperCase())+'</div>'+
-      '<div class="mid"><div class="nm">Visitor '+esc(s.id.slice(-4))+
-        (human?' <span class="bdg b-h">You</span>':'<span class="bdg b-ai">AI</span>')+
+  listed.forEach(function(s){
+    var lm=last(s), human=s.mode==="human", unread=isUnread(s);
+    var nm=s.visitorName?esc(s.visitorName):"Visitor "+esc(s.id.slice(-4));
+    var d=document.createElement("div"); d.className="citem"+(s.id===selectedId?" sel":"")+(unread?" unread":"");
+    d.innerHTML='<div class="ava">'+esc(initials(s))+'</div>'+
+      '<div class="mid"><div class="nm">'+nm+
+        (human?' <span class="bdg b-h">You</span>':' <span class="bdg b-ai">AI</span>')+
+        (s.closed?' <span class="cl-tag">Closed</span>':'')+
         (unread?' <span class="dot"></span>':'')+'</div>'+
         '<div class="pv">'+(lm.role==="user"?"":lm.role==="team"?"You: ":"Smily: ")+esc(lm.text)+'</div></div>'+
       '<div class="rt">'+ago(s.lastActivity)+'</div>';
@@ -297,30 +366,46 @@ function renderList(act){
 /* ---- detail: append only, so the reply box is never wiped ---- */
 function selectConv(id){
   selectedId=id; detailCount=0;
-  var s=findSession(id); lastSeen[id]= s? s.messages.length : 0;
+  var s=findSession(id); lastSeen[id]= s? s.messages.length : 0; saveSeen();
   var det=document.querySelector(".detail");
   det.innerHTML=
     '<div class="dhead"><button class="back" id="backBtn">&larr;</button>'+
     '<div><div class="who" id="dWho"></div><div class="sub" id="dSub"></div></div>'+
-    '<button class="hb" id="hbBtn" style="display:none">Hand back to Smily</button></div>'+
+    '<button class="hb" id="hbBtn" style="display:none">Hand back to Smily</button>'+
+    '<button class="rsv" id="rsvBtn"></button></div>'+
     '<div class="tr" id="transcript"></div>'+
-    '<div class="replybar"><input id="replyInput" placeholder="Reply as reception (pauses Smily)…" autocomplete="off"/>'+
+    '<div class="replybar"><div class="qrwrap"><button class="qr" id="qrBtn" title="Quick replies">\u26a1</button></div>'+
+    '<input id="replyInput" placeholder="Reply as reception (pauses Smily)\u2026" autocomplete="off"/>'+
     '<button class="send" id="replySend">&rarr;</button></div>';
   g("backBtn").onclick=function(){ g("convTab").classList.remove("show-detail"); selectedId=null; renderList(activeSessions()); };
   g("hbBtn").onclick=function(){ if(selectedId) fetch("/api/staff/handback",{method:"POST",headers:hdr(),body:JSON.stringify({sessionId:selectedId})}).then(refresh); };
+  g("rsvBtn").onclick=toggleResolved;
+  g("qrBtn").onclick=toggleQuick;
   g("replySend").onclick=sendReply;
   g("replyInput").addEventListener("keydown",function(e){ if(e.key==="Enter") sendReply(); });
   g("convTab").classList.add("show-detail");
   updateHead(); appendTranscript(); renderList(activeSessions());
+}
+function toggleResolved(){
+  var s=findSession(selectedId); if(!s)return; var nc=!s.closed;
+  fetch("/api/admin/conversation-status",{method:"POST",headers:hdr(),body:JSON.stringify({sessionId:selectedId,closed:nc})})
+    .then(function(){ s.closed=nc; if(nc){ g("convTab").classList.remove("show-detail"); selectedId=null; } refresh(); });
+}
+function toggleQuick(){
+  var ex=g("qrpop"); if(ex){ ex.remove(); return; }
+  var p=document.createElement("div"); p.className="qrpop"; p.id="qrpop";
+  QUICK.forEach(function(t){ var i=document.createElement("div"); i.className="qi"; i.textContent=t; i.onclick=function(){ var inp=g("replyInput"); inp.value=t; inp.focus(); p.remove(); }; p.appendChild(i); });
+  g("qrBtn").parentNode.appendChild(p);
 }
 function findSession(id){ return (DATA.sessions||[]).find(function(s){return s.id===id;}); }
 
 function updateHead(){
   var s=findSession(selectedId); if(!s||!g("dWho"))return;
   var human=s.mode==="human", rem=human&&s.resumeAt?(s.resumeAt-Date.now()):0;
-  g("dWho").textContent="Visitor "+s.id.slice(-4);
-  g("dSub").innerHTML= human? 'You\u2019re handling \u00b7 Smily resumes in '+mmss(rem) : 'Smily is handling';
+  g("dWho").textContent= s.visitorName || ("Visitor "+s.id.slice(-4));
+  g("dSub").innerHTML= s.closed? "Resolved \u00b7 closed" : (human? "You\u2019re handling \u00b7 Smily resumes in "+mmss(rem) : "Smily is handling");
   g("hbBtn").style.display= human? "block":"none";
+  var rb=g("rsvBtn"); if(rb) rb.textContent= s.closed? "Reopen" : "\u2713 Resolve";
 }
 function appendTranscript(){
   var s=findSession(selectedId), tr=g("transcript"); if(!s||!tr)return;
@@ -330,7 +415,7 @@ function appendTranscript(){
     d.innerHTML=(m.role==="team"?'<div class="lab">You</div>':"")+esc(m.text);
     tr.appendChild(d);
   }
-  if(s.messages.length>detailCount){ detailCount=s.messages.length; lastSeen[selectedId]=detailCount; tr.scrollTop=tr.scrollHeight; }
+  if(s.messages.length>detailCount){ detailCount=s.messages.length; lastSeen[selectedId]=detailCount; saveSeen(); tr.scrollTop=tr.scrollHeight; }
 }
 function sendReply(){
   var inp=g("replyInput"); if(!inp)return; var t=inp.value.trim(); if(!t)return;
