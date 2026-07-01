@@ -111,12 +111,19 @@ const FALLBACK_MODEL = "gemini-2.5-flash-lite";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // system prompt (+ dynamic "already on file" note) shared by every provider
 function buildSystem(session) {
-  let sys = SYSTEM_PROMPT;
   if (session.contact && session.contact.name) {
     const first = session.contact.name.split(/\s+/)[0];
-    sys += `\n\n[VISITOR ALREADY ON FILE] ${first} filled out the intake form, so we ALREADY have their name, mobile number and email. NEVER ask ${first} for their name, mobile or email again — you already have them. If they want to book for THEMSELVES, just confirm the reason for the visit and a rough day/time, give a warm confirmation, and set action to "book" (you may leave the lead name/phone empty — reception already has them on file). ONLY if they clearly say the appointment is for SOMEONE ELSE (e.g. a child, partner or friend) should you collect that other person's name and mobile.`;
+    // Prepended (not appended) + forceful, because it must OVERRIDE the "collect name + mobile" booking steps below.
+    return (
+"\u26a0\ufe0f TOP-PRIORITY RULE \u2014 THIS OVERRIDES THE BOOKING STEPS BELOW:\n" +
+first + " has ALREADY completed our contact form, so we HAVE their name, mobile number and email on file.\n" +
+"\u2022 NEVER ask " + first + " for their name, mobile, or email \u2014 you already have all three. Asking again is a mistake.\n" +
+"\u2022 For a booking for THEMSELVES: SKIP booking steps 1 (name) and 2 (mobile) completely. Only ask what the visit is for, roughly when suits, and whether they're a new or existing patient \u2014 then set action to \"book\" and leave lead.name and lead.phone EMPTY (reception already has them).\n" +
+"\u2022 The ONLY time you may collect a fresh name + mobile is if " + first + " clearly says the appointment is for a DIFFERENT person (e.g. their child, partner or friend).\n\n" +
+SYSTEM_PROMPT
+    );
   }
-  return sys;
+  return SYSTEM_PROMPT;
 }
 function convoTurns(session) {
   return session.messages.filter(m => m.role === "user" || m.role === "bot" || m.role === "team").slice(-12);
@@ -460,6 +467,7 @@ app.post("/api/push/test", auth, async (req, res) => {
 
 // Fast wake-up ping (the widget calls this on page load so the server is awake by the time someone chats)
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
+app.get("/api/version", (_req, res) => res.json({ build: "2026-07-01-onfile-v2", onFileFix: true, groqFallback: !!GROQ_KEY }));
 
 // Intake form before the conversation: capture the visitor's details up front
 // intake form: capture the visitor's details up-front (before the chat) so Smily never re-asks.
