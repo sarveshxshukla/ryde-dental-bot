@@ -110,12 +110,17 @@ async function geminiOnce(model, session) {
     .filter(m => m.role === "user" || m.role === "bot" || m.role === "team")
     .slice(-12)
     .map(m => ({ role: m.role === "user" ? "user" : "model", parts: [{ text: m.text }] }));
+  let sys = SYSTEM_PROMPT;
+  if (session.contact && session.contact.name) {
+    const first = session.contact.name.split(/\s+/)[0];
+    sys += `\n\n[VISITOR ALREADY ON FILE] ${first} filled out the intake form, so we ALREADY have their name, mobile number and email. NEVER ask ${first} for their name, mobile or email again — you already have them. If they want to book for THEMSELVES, just confirm the reason for the visit and a rough day/time, give a warm confirmation, and set action to "book" (you may leave the lead name/phone empty — reception already has them on file). ONLY if they clearly say the appointment is for SOMEONE ELSE (e.g. a child, partner or friend) should you collect that other person's name and mobile.`;
+  }
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      system_instruction: { parts: [{ text: sys }] },
       contents,
       generationConfig: { temperature: 0.6, maxOutputTokens: 800, responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } }, // thinkingBudget:0 turns off the model's slow internal "thinking" — not needed for a simple FAQ/booking bot, so replies come back faster
     }),
@@ -265,18 +270,25 @@ app.post("/api/chat", async (req, res) => {
     const out = await callGemini(s);
     if (out.lead?.name) s.visitorName = out.lead.name;   // remember the name for future message alerts
     s.messages.push({ role: "bot", text: out.reply, ts: Date.now() });
-    if ((out.action === "book" || out.action === "callback") && out.lead?.name && out.lead?.phone) {
+    if (out.action === "book" || out.action === "callback") {
       const type = out.action === "callback" ? "Callback" : "Booking";
-      const norm = String(out.lead.phone).replace(/\D/g, "");
-      const dup = db.leads.some(l => l.sessionId === sessionId && l.phone.replace(/\D/g, "") === norm);
-      if (!dup) db.leads.unshift({
-        id: "RDF-" + Date.now().toString().slice(-6), sessionId, type,
-        name: out.lead.name, phone: out.lead.phone, email: "", service: out.lead.service || "General enquiry",
-        when: type === "Callback" ? "Callback requested" : (out.lead.when || "Flexible"),
-        patientType: type === "Callback" ? "—" : (out.lead.patientType || "New patient"),
-        status: "New", createdAt: Date.now(),
-      });
-      if (!dup) pushNotify(type === "Callback" ? "New callback \ud83d\udcde" : "New booking \ud83d\udcc5", out.lead.name + (out.lead.service ? " \u00b7 " + out.lead.service : ""), "rdf-lead");
+      // booking for someone ELSE → Gemini supplies a fresh name+phone; otherwise fall back to the details already on file
+      const gaveOther = out.lead && out.lead.name && out.lead.phone;
+      const name  = gaveOther ? out.lead.name  : (s.contact?.name  || out.lead?.name);
+      const phone = gaveOther ? out.lead.phone : (s.contact?.phone || out.lead?.phone);
+      const email = gaveOther ? (out.lead.email || "") : (s.contact?.email || "");
+      if (name && phone) {
+        const norm = String(phone).replace(/\D/g, "");
+        const dup = db.leads.some(l => l.type === type && String(l.phone).replace(/\D/g, "") === norm && (Date.now() - l.createdAt) < 6 * 3600 * 1000);
+        if (!dup) {
+          const service = out.lead?.service || "General enquiry";
+          const when = type === "Callback" ? "Callback requested" : (out.lead?.when || "Flexible");
+          const patientType = type === "Callback" ? "\u2014" : (out.lead?.patientType || "New patient");
+          db.leads.unshift({ id: "RDF-" + Date.now().toString().slice(-6), sessionId, type, name, phone, email, service, when, patientType, status: "New", createdAt: Date.now() });
+          emailLead(s, { name, phone, email, service, when, patientType }, type);
+          pushNotify(type === "Callback" ? "New callback \ud83d\udcde" : "New booking \ud83d\udcc5", name + (out.lead?.service ? " \u00b7 " + out.lead.service : ""), "rdf-lead");
+        }
+      }
     }
     save();
     res.json({ reply: out.reply, chips: out.chips, mode: "ai" });
@@ -422,7 +434,9 @@ app.post("/api/push/test", auth, async (req, res) => {
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
 
 // Intake form before the conversation: capture the visitor's details up front
-app.post("/api/register", (req, res) => {
+// intake form: capture the visitor's details up-front (before the chat) so Smily never re-asks.
+// Registered on BOTH paths so a cached old widget (/api/register) and the new one (/api/start) both work.
+app.post(["/api/start", "/api/register"], (req, res) => {
   const name = String(req.body?.name || "").trim().slice(0, 80);
   const phone = String(req.body?.mobile || req.body?.phone || "").trim().slice(0, 40);
   const email = String(req.body?.email || "").trim().slice(0, 120);
@@ -430,16 +444,19 @@ app.post("/api/register", (req, res) => {
   const sessionId = req.body?.sessionId;
   if (!sessionId || !name || !phone) return res.status(400).json({ error: "Name and mobile are required." });
   const s = getSession(sessionId);
-  s.visitorName = name; s.lastActivity = Date.now();
-  if (!db.leads.some(l => l.sessionId === sessionId)) {
+  s.visitorName = name;
+  s.contact = { name, phone, email };   // on file → Smily won't ask for these again
+  s.lastActivity = Date.now();
+  if (req.body?.silent) { save(); return res.json({ ok: true }); }   // returning visitor: just refresh the on-file details, no new lead/email/alert
+  if (!db.leads.some(l => l.sessionId === sessionId && l.type === "Enquiry")) {
     db.leads.unshift({
       id: "RDF-" + Date.now().toString().slice(-6), sessionId, type: "Enquiry",
-      name, phone, email, service: message ? message.slice(0, 120) : "Website enquiry",
+      name, phone, email, service: message ? message.slice(0, 200) : "Website enquiry",
       when: "\u2014", patientType: "\u2014", status: "New", createdAt: Date.now(),
     });
     emailLead(s, { name, phone, email, service: message ? message.slice(0, 200) : "Website enquiry" }, "Enquiry");
   }
-  s.skipNextPush = true;  // the first chat message that follows shouldn't double-alert
+  s.skipNextPush = true;   // the first chat message that follows shouldn't double-alert
   pushNotify("\ud83d\udcac New enquiry \u2014 " + name, message ? message.slice(0, 140) : "started a chat", "rdf-msg-" + s.id);
   save();
   res.json({ ok: true });
@@ -474,27 +491,6 @@ app.post("/api/book", (req, res) => {
 });
 
 // intake form — capture the visitor's details up-front, before the chat starts
-app.post("/api/start", (req, res) => {
-  const { sessionId, name, phone, email, message } = req.body || {};
-  if (!sessionId || !name || !phone) return res.status(400).json({ error: "name and phone required" });
-  const s = getSession(sessionId);
-  s.visitorName = String(name).slice(0, 80);
-  s.lastActivity = Date.now();
-  if (!db.leads.some(l => l.sessionId === sessionId && l.type === "Enquiry")) {
-    db.leads.unshift({
-      id: "RDF-" + Date.now().toString().slice(-6), sessionId, type: "Enquiry",
-      name: String(name).slice(0, 80), phone: String(phone).slice(0, 40), email: String(email || "").slice(0, 120),
-      service: message ? String(message).slice(0, 200) : "Website enquiry",
-      when: "\u2014", patientType: "\u2014", status: "New", createdAt: Date.now(),
-    });
-  }
-  notify("\ud83d\udcac New website enquiry \u2014 " + name,
-    "Name: " + name + "\nMobile: " + phone + "\nEmail: " + (email || "(not provided)") + "\nMessage: " + (message || "(none yet \u2014 just started the chat)"));
-  pushNotify("\ud83d\udcac New chat \u2014 " + name, message ? String(message).slice(0, 120) : ("\ud83d\udcf1 " + phone), "rdf-msg-" + s.id);
-  save();
-  res.json({ ok: true });
-});
-
 app.use("/", express.static(path.join(__dirname, "public")));
 app.get("/admin", (_req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 
