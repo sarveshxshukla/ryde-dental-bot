@@ -62,14 +62,14 @@
     ".rdf-seg{display:flex;gap:8px}.rdf-seg button{flex:1;padding:10px;border:1px solid " + C.line + ";background:#fff;border-radius:10px;cursor:pointer;font-size:13px;color:" + C.muted + "}.rdf-seg button.on{background:" + C.teal + ";color:#EAFBF8;border-color:" + C.teal + "}" +
     ".rdf-fbtn{padding:12px;border:none;border-radius:10px;background:" + C.coral + ";color:#fff;font-weight:700;cursor:pointer;font-size:14px}" +
     ".rdf-fn{font-size:11px;color:" + C.muted + ";text-align:center}" +
-    "#rdf-intake{padding:16px;overflow-y:auto;animation:rdfin .2s ease}" +
-    ".rdf-iw{display:flex;flex-direction:column;gap:9px}" +
+    "#rdf-intake{padding:13px 16px;overflow-y:auto;animation:rdfin .2s ease}" +
+    ".rdf-iw{display:flex;flex-direction:column;gap:7px}" +
     ".rdf-it{font-weight:700;font-size:14.5px;color:" + C.ink + ";line-height:1.45}" +
     ".rdf-isub{font-size:12px;color:" + C.muted + ";margin:-4px 0 4px;line-height:1.45}" +
-    ".rdf-ita{min-height:58px;resize:vertical;font-family:inherit}" +
-    ".rdf-consent{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:" + C.muted + ";line-height:1.4;cursor:pointer}" +
+    ".rdf-ita{min-height:40px;resize:vertical;font-family:inherit}" +
+    ".rdf-consent{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:" + C.muted + ";line-height:1.35;cursor:pointer}" +
     ".rdf-consent input{margin-top:1px;width:16px;height:16px;flex-shrink:0;accent-color:" + C.teal + "}" +
-    ".rdf-ierr{font-size:12px;color:#C0392B;min-height:14px}" +
+    ".rdf-ierr{font-size:12px;color:#C0392B}.rdf-ierr:empty{display:none}" +
     "@keyframes rdfspin{to{transform:rotate(360deg)}}";
 
   var spark = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2.2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>';
@@ -221,8 +221,7 @@
     chipsEl.style.display = "none";
     var f = el("div"); f.id = "rdf-intake";
     f.innerHTML = '<div class="rdf-iw">' +
-      '<div class="rdf-it">👋 Hi there! Before we start, who are we chatting with?</div>' +
-      '<div class="rdf-isub">Pop in your details so the team can follow up — then Smily will help with anything you need.</div>' +
+      '<div class="rdf-it">👋 Hi! Who are we chatting with?</div>' +
       '<input class="rdf-fi" id="in-name" placeholder="Name *" autocomplete="name"/>' +
       '<input class="rdf-fi" id="in-phone" placeholder="Mobile *" inputmode="tel" autocomplete="tel"/>' +
       '<input class="rdf-fi" id="in-email" placeholder="Email *" inputmode="email" autocomplete="email"/>' +
