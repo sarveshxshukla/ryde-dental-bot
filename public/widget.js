@@ -35,7 +35,7 @@
     ".rdf-row{display:flex;gap:8px;align-items:flex-end;animation:rdfin .25s ease}" +
     "@keyframes rdfin{from{opacity:0;transform:translateY(6px)}to{opacity:1}}" +
     ".rdf-row.me{justify-content:flex-end}" +
-    ".rdf-b{max-width:80%;width:fit-content;padding:10px 13px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:normal;overflow-wrap:break-word}" +
+    ".rdf-b{max-width:80%;width:fit-content;padding:10px 13px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:keep-all !important;overflow-wrap:break-word !important;hyphens:none !important}" +
     ".rdf-b.bot{background:#fff;color:" + C.ink + ";border:1px solid " + C.line + ";border-radius:16px 16px 16px 4px}" +
     ".rdf-b.me{background:" + C.teal + ";color:#EAFBF8;border-radius:16px 16px 4px 16px}" +
     ".rdf-b.team{background:#FBE1D1;color:" + C.ink + ";border:1px solid #F3D2BC;border-top:2px solid " + C.coral + ";border-radius:16px 16px 16px 4px}" +
