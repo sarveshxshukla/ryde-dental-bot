@@ -124,19 +124,19 @@
     var node = buildRow(m);
     if (anchor) body.insertBefore(node, anchor); else body.appendChild(node);
   }
-  function scrollDown() { body.scrollTop = body.scrollHeight; }
+  function scrollDown() { requestAnimationFrame(function () { body.scrollTop = body.scrollHeight; }); }
   function renderChips() {
     chipsEl.innerHTML = "";
     var last = msgs[msgs.length - 1];
     if (!last || last.role !== "bot" || !last.chips) return;
     last.chips.forEach(function (c) { var b = el("button", "rdf-chip", esc(c)); b.onclick = function () { sendMsg(c); }; chipsEl.appendChild(b); });
   }
-  function sync() { var added = false; msgs.forEach(function (m) { if (!rendered[m.ts]) { addRow(m); added = true; } }); if (added) { scrollDown(); renderChips(); } }
+  function sync() { var added = false; msgs.forEach(function (m) { if (!rendered[m.ts]) { addRow(m); added = true; } }); if (added) { renderChips(); scrollDown(); } }
 
   function push(role, text, extra) {
     var m = Object.assign({ role: role, text: text, ts: Date.now() + Math.random() }, extra || {});
     msgs.push(m); seen[m.ts] = 1; persist();
-    addRow(m); scrollDown(); renderChips();
+    addRow(m); renderChips(); scrollDown();
   }
   function typing(on) {
     var ex = $("rdf-typing"); if (ex) ex.remove();
@@ -247,8 +247,9 @@
         intakeDone = true; savedName = name; savedContact = { name: name, phone: phone, email: email };
         var fm = $("rdf-intake"); if (fm) fm.remove();
         $("rdf-foot").style.display = ""; chipsEl.style.display = "";
-        if (msg) sendMsg(msg);    // their question kicks off the real conversation
-        else push("bot", "Thanks " + name.split(" ")[0] + "! 😊 How can I help you today?", { chips: ["Book a visit", "Meet the dentists", "Opening hours", "Tooth pain"] });
+        var fn = name.split(" ")[0];
+        if (msg) { push("bot", "Hi " + fn + "! 👋", {}); sendMsg(msg); }   // greet by name, then answer their question
+        else push("bot", "Hi " + fn + "! 👋 How can I help you today?", { chips: ["Book a visit", "Meet the dentists", "Opening hours", "Tooth pain"] });
       })
       .catch(function () { $("in-send").textContent = "Try again"; $("in-send").disabled = false; });
   }
