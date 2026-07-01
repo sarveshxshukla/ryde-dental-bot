@@ -7,8 +7,9 @@
   if (!SID) { SID = "s_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); localStorage.setItem("rdf_sid", SID); }
   var LOGKEY = "rdf_log_" + SID;
   var msgs = []; try { msgs = JSON.parse(localStorage.getItem(LOGKEY) || "[]"); } catch (e) {}
-  var savedName = ""; try { savedName = localStorage.getItem("rdf_intake") || ""; } catch (e) {}
-  var intakeDone = !!savedName;
+  var savedContact = null; try { savedContact = JSON.parse(localStorage.getItem("rdf_contact") || "null"); } catch (e) {}
+  var savedName = (savedContact && savedContact.name) || "";
+  var intakeDone = !!savedContact;
   var rendered = {};   // ts -> already in the DOM
   var seen = {};       // ts -> already known (event de-dupe)
   msgs.forEach(function (m) { if (m.ts) seen[m.ts] = 1; });
@@ -243,8 +244,8 @@
     fetch(API + "/api/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: SID, name: name, phone: phone, email: email, message: msg }) })
       .then(function (r) { return r.json(); })
       .then(function () {
-        try { localStorage.setItem("rdf_intake", name); } catch (e) {}
-        intakeDone = true; savedName = name;
+        try { localStorage.setItem("rdf_contact", JSON.stringify({ name: name, phone: phone, email: email })); } catch (e) {}
+        intakeDone = true; savedName = name; savedContact = { name: name, phone: phone, email: email };
         var fm = $("rdf-intake"); if (fm) fm.remove();
         $("rdf-foot").style.display = ""; chipsEl.style.display = "";
         if (msg) sendMsg(msg);    // their question kicks off the real conversation
@@ -273,7 +274,10 @@
         started = true;
         if (msgs.length) sync();                                  // returning visitor with chat history
         else if (!intakeDone) showIntake();                       // first time → capture details before chatting
-        else push("bot", "Welcome back" + (savedName ? ", " + savedName.split(" ")[0] : "") + "! 😊 How can I help you today?", { chips: ["Book a visit", "Meet the dentists", "Tooth pain", "Opening hours"] });
+        else { // returning visitor → quietly refresh their details on the server so Smily still knows them
+          try { fetch(API + "/api/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: SID, name: savedContact.name, phone: savedContact.phone, email: savedContact.email, silent: true }) }).catch(function(){}); } catch (e) {}
+          push("bot", "Welcome back" + (savedName ? ", " + savedName.split(" ")[0] : "") + "! 😊 How can I help you today?", { chips: ["Book a visit", "Meet the dentists", "Tooth pain", "Opening hours"] });
+        }
       }
       poll(); pollTimer = setInterval(poll, 4000);
     } else { clearInterval(pollTimer); }
