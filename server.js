@@ -8,8 +8,12 @@ import webpush from "web-push";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
-const GEMINI_KEY = process.env.GEMINI_API_KEY || "";
+const GEMINI_KEYS = (process.env.GEMINI_API_KEY || "").split(",").map(k => k.trim()).filter(Boolean); // one or more keys (comma-separated) — each free Google project has its own quota
+const GEMINI_KEY = GEMINI_KEYS[0] || "";
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const GROQ_KEY = process.env.GROQ_API_KEY || "";                          // optional free fallback when Gemini is busy — get one at console.groq.com
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const AI_READY = GEMINI_KEYS.length > 0 || !!GROQ_KEY;
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "changeme";
 const HANDBACK_MIN = parseInt(process.env.HANDBACK_MINUTES) || 5;
 const RESUME_MS = HANDBACK_MIN * 60 * 1000; // Smily resumes this many minutes after the last staff reply
@@ -105,22 +109,26 @@ You: {"reply":"It depends on the option, so we quote after a quick look — and 
 /* -------------------- Gemini call -------------------- */
 const FALLBACK_MODEL = "gemini-2.5-flash-lite";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-async function geminiOnce(model, session) {
-  const contents = session.messages
-    .filter(m => m.role === "user" || m.role === "bot" || m.role === "team")
-    .slice(-12)
-    .map(m => ({ role: m.role === "user" ? "user" : "model", parts: [{ text: m.text }] }));
+// system prompt (+ dynamic "already on file" note) shared by every provider
+function buildSystem(session) {
   let sys = SYSTEM_PROMPT;
   if (session.contact && session.contact.name) {
     const first = session.contact.name.split(/\s+/)[0];
     sys += `\n\n[VISITOR ALREADY ON FILE] ${first} filled out the intake form, so we ALREADY have their name, mobile number and email. NEVER ask ${first} for their name, mobile or email again — you already have them. If they want to book for THEMSELVES, just confirm the reason for the visit and a rough day/time, give a warm confirmation, and set action to "book" (you may leave the lead name/phone empty — reception already has them on file). ONLY if they clearly say the appointment is for SOMEONE ELSE (e.g. a child, partner or friend) should you collect that other person's name and mobile.`;
   }
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`;
+  return sys;
+}
+function convoTurns(session) {
+  return session.messages.filter(m => m.role === "user" || m.role === "bot" || m.role === "team").slice(-12);
+}
+async function geminiOnce(model, session, key) {
+  const contents = convoTurns(session).map(m => ({ role: m.role === "user" ? "user" : "model", parts: [{ text: m.text }] }));
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      system_instruction: { parts: [{ text: sys }] },
+      system_instruction: { parts: [{ text: buildSystem(session) }] },
       contents,
       generationConfig: { temperature: 0.6, maxOutputTokens: 800, responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } }, // thinkingBudget:0 turns off the model's slow internal "thinking" — not needed for a simple FAQ/booking bot, so replies come back faster
     }),
@@ -130,17 +138,37 @@ async function geminiOnce(model, session) {
   const txt = (data?.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("");
   return parseReply(txt);
 }
-// Auto-retry when Google's model is busy (503/429), then fall back to a lighter free model
+// Groq (OpenAI-compatible) — the free, very fast fallback used when Gemini is busy
+async function groqOnce(session) {
+  const messages = [{ role: "system", content: buildSystem(session) }]
+    .concat(convoTurns(session).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.text })));
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + GROQ_KEY },
+    body: JSON.stringify({ model: GROQ_MODEL, messages, temperature: 0.6, max_tokens: 800, response_format: { type: "json_object" } }),
+  });
+  if (!res.ok) { const err = new Error("Groq " + res.status + ": " + (await res.text()).slice(0, 200)); err.status = res.status; throw err; }
+  const data = await res.json();
+  return parseReply(data?.choices?.[0]?.message?.content || "");
+}
+// Try Gemini across every key + model (retrying on busy), then fall back to Groq if configured
 async function callGemini(session) {
   const models = GEMINI_MODEL === FALLBACK_MODEL ? [GEMINI_MODEL] : [GEMINI_MODEL, FALLBACK_MODEL];
   let lastErr;
-  for (const model of models) {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try { return await geminiOnce(model, session); }
-      catch (e) { lastErr = e; if (e.status === 503 || e.status === 429) { await sleep(700 * (attempt + 1)); continue; } throw e; }
+  for (const key of GEMINI_KEYS) {
+    for (const model of models) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try { return await geminiOnce(model, session, key); }
+        catch (e) { lastErr = e; if (e.status === 503 || e.status === 429) { await sleep(500 * (attempt + 1)); continue; } break; }
+      }
     }
   }
-  throw lastErr;
+  // every Gemini key/model was busy or failed → use the free Groq fallback
+  if (GROQ_KEY) {
+    try { return await groqOnce(session); }
+    catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error("No AI provider configured");
 }
 function parseReply(raw) {
   let s = (raw || "").trim().replace(/```json|```/g, "").trim();
@@ -265,7 +293,7 @@ app.post("/api/chat", async (req, res) => {
              "rdf-msg-" + s.id);
   maybeResume(s);
   if (s.mode === "human") { save(); return res.json({ reply: null, queued: true, mode: "human" }); }
-  if (!GEMINI_KEY) { save(); return res.json({ reply: "(Setup needed: add your GEMINI_API_KEY in .env) — meanwhile call us on (02) 9807 9800.", chips: [], mode: "ai" }); }
+  if (!AI_READY) { save(); return res.json({ reply: "(Setup needed: add a GEMINI_API_KEY or GROQ_API_KEY in .env) — meanwhile call us on (02) 9807 9800.", chips: [], mode: "ai" }); }
   try {
     const out = await callGemini(s);
     if (out.lead?.name) s.visitorName = out.lead.name;   // remember the name for future message alerts
@@ -498,5 +526,6 @@ app.listen(PORT, () => {
   console.log(`\n  Ryde Dental chatbot running on http://localhost:${PORT}`);
   console.log(`  Test widget:  http://localhost:${PORT}/`);
   console.log(`  Staff inbox:  http://localhost:${PORT}/admin   (token: ${ADMIN_TOKEN})`);
-  if (!GEMINI_KEY) console.log("  ⚠  No GEMINI_API_KEY set — add it to .env\n");
+  if (!AI_READY) console.log("  ⚠  No AI key set — add GEMINI_API_KEY (and/or GROQ_API_KEY) to .env\n");
+  else if (GROQ_KEY) console.log("  ✓  Groq fallback is ON (used if Gemini is busy)\n");
 });
