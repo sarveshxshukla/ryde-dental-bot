@@ -46,6 +46,8 @@
     "#rdf-chips{padding:10px 14px 12px;display:flex;flex-wrap:wrap;gap:7px}#rdf-chips:empty{padding:0}" +
     ".rdf-chip{padding:6px 12px;font-size:13px;font-weight:500;border-radius:20px;background:#fff;color:" + C.teal + ";border:1px solid " + C.line + ";cursor:pointer}" +
     ".rdf-chip:hover{transform:translateY(-1px)}" +
+    ".rdf-cta{display:inline-flex;align-items:center;gap:6px;padding:11px 16px;font-size:13px;font-weight:700;border-radius:12px;background:#1FA463;color:#fff !important;border:none;text-decoration:none;cursor:pointer;box-shadow:0 3px 12px rgba(31,164,99,.32);transition:transform .12s,background .12s}" +
+    ".rdf-cta:hover{transform:translateY(-1px);background:#178a52}" +
     "#rdf-foot{padding:12px;display:flex;align-items:center;gap:8px;border-top:1px solid " + C.line + "}" +
     "#rdf-inwrap{flex:1;display:flex;align-items:center;gap:4px;background:#fff;border:1px solid " + C.line + ";border-radius:24px;padding:0 6px 0 14px}" +
     "#rdf-in{flex:1;border:none;outline:none;padding:11px 0;font-size:16px;background:transparent;color:" + C.ink + "}" +
@@ -128,8 +130,9 @@
   function renderChips() {
     chipsEl.innerHTML = "";
     var last = msgs[msgs.length - 1];
-    if (!last || last.role !== "bot" || !last.chips) return;
-    last.chips.forEach(function (c) { var b = el("button", "rdf-chip", esc(c)); b.onclick = function () { sendMsg(c); }; chipsEl.appendChild(b); });
+    if (!last || last.role !== "bot") return;
+    if (last.chips) last.chips.forEach(function (c) { var b = el("button", "rdf-chip", esc(c)); b.onclick = function () { sendMsg(c); }; chipsEl.appendChild(b); });
+    if (last.cta && last.cta.url) { var a = el("a", "rdf-cta", esc(last.cta.label || "Book online")); a.href = last.cta.url; a.target = "_blank"; a.rel = "noopener noreferrer"; chipsEl.appendChild(a); }
   }
   function sync() { var added = false; msgs.forEach(function (m) { if (!rendered[m.ts]) { addRow(m); added = true; } }); if (added) { renderChips(); scrollDown(); } }
 
@@ -166,7 +169,7 @@
       var d = await r.json();
       typing(false);
       if (d.mode) setMode(d.mode);
-      if (d.reply) push("bot", d.reply, { chips: d.chips || [] });
+      if (d.reply) push("bot", d.reply, { chips: d.chips || [], cta: d.cta });
     } catch (e) { typing(false); push("bot", "Sorry, I couldn't reach the clinic just now — please call (02) 9807 9800.", { chips: [] }); }
   }
 
