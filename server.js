@@ -14,6 +14,7 @@ const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 const GROQ_KEY = process.env.GROQ_API_KEY || "";                          // optional free fallback when Gemini is busy — get one at console.groq.com
 const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 const AI_READY = GEMINI_KEYS.length > 0 || !!GROQ_KEY;
+const BOOKING_URL = process.env.BOOKING_URL || "https://rydedentalfamily.com.au/book-an-appointment/"; // link for the "Book a confirmed time" button
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "changeme";
 const HANDBACK_MIN = parseInt(process.env.HANDBACK_MINUTES) || 5;
 const RESUME_MS = HANDBACK_MIN * 60 * 1000; // Smily resumes this many minutes after the last staff reply
@@ -93,7 +94,9 @@ TEAM:
 
 PRICING: never quote a number. Say it depends and needs a quick look, mention payment plans, and offer a consult or a callback for a proper quote.
 
-BOOKING & CALLBACKS: help the person book by collecting, conversationally and ONE thing at a time, IN THIS ORDER: 1) their name, 2) best mobile, 3) what it's for, 4) roughly when suits, 5) and finally whether they are a NEW or EXISTING patient. For a callback you only need name, mobile and the topic. Once you have all of it, set the action and reply with a short, warm THANK YOU that confirms the details back (e.g. "Thanks Sarah! 🎉 You're booked for a check-up this week and the team will call 04xx xxx xxx to confirm a time.").
+FREE CONSULTATION OFFER: We offer a genuinely FREE consultation for dental implants and for Invisalign. Whenever someone shows any interest in implants or Invisalign (asks about them, cost, suitability, etc.), warmly let them know the consult is on us — frame it with care, e.g. "Because we really care about getting this right for you, we offer a complimentary (free) consultation for that — so you can explore your options with zero pressure." Then invite them to book that free consult.
+
+BOOKING & CALLBACKS: help the person book by collecting, conversationally and ONE thing at a time, IN THIS ORDER: 1) their name, 2) best mobile, 3) what it's for, 4) roughly when suits, 5) and finally whether they are a NEW or EXISTING patient. For a callback you only need name, mobile and the topic. Once you have all of it, set the action and reply with a short, warm thank-you that does NOT promise or state a specific appointment time — instead reassure them our team will reach out to confirm (e.g. "Thanks Sarah! 😊 I've passed your details to our dental care team — they'll be in touch shortly to confirm a time that suits you."). NEVER say "you're booked for [a time]" or commit to a slot; only the clinic confirms actual appointment times.
 
 ALWAYS reply with ONLY a JSON object, no markdown:
 {"reply":"<your message>","chips":["<short option>"],"action":"none","lead":{"name":"","phone":"","service":"","when":"","patientType":""}}
@@ -326,7 +329,9 @@ app.post("/api/chat", async (req, res) => {
       }
     }
     save();
-    res.json({ reply: out.reply, chips: out.chips, mode: "ai" });
+    const resp = { reply: out.reply, chips: out.chips, mode: "ai" };
+    if (out.action === "book" || out.action === "callback") resp.cta = { label: "\ud83d\udcc5 Book a confirmed time", url: BOOKING_URL };
+    res.json(resp);
   } catch (e) {
     console.error("Gemini error:", e.message);
     res.json({ reply: "Sorry, I'm having a moment — you can reach our team on (02) 9807 9800. Want to leave your number for a callback?", chips: ["Request a callback"], mode: "ai" });
@@ -467,7 +472,7 @@ app.post("/api/push/test", auth, async (req, res) => {
 
 // Fast wake-up ping (the widget calls this on page load so the server is awake by the time someone chats)
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
-app.get("/api/version", (_req, res) => res.json({ build: "2026-07-01-onfile-v2", onFileFix: true, groqFallback: !!GROQ_KEY }));
+app.get("/api/version", (_req, res) => res.json({ build: "2026-07-02-freeconsult-cta", onFileFix: true, freeConsult: true, bookingBtn: true, groqFallback: !!GROQ_KEY }));
 
 // Intake form before the conversation: capture the visitor's details up front
 // intake form: capture the visitor's details up-front (before the chat) so Smily never re-asks.
