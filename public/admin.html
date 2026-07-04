@@ -165,6 +165,54 @@ html[data-theme="dark"] .qrpop,html[data-theme="dark"] .card,html[data-theme="da
 @keyframes slidein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .cl-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--mint);color:var(--muted)}
 input,textarea,select{font-size:16px !important}  /* iOS: 16px stops the zoom-on-tap; smaller text would trigger it */
+
+/* ===== v3 — soft & friendly premium redesign ===== */
+:root{--radius:18px;--soft:0 6px 20px rgba(197,100,40,.08);--soft2:0 12px 30px rgba(197,100,40,.14)}
+body{background:radial-gradient(1100px 560px at 50% -220px,#FDEEE0,#FBF6EF)}
+.bar{background:linear-gradient(120deg,#F58A45,#EA6C22);padding:15px 20px;box-shadow:0 8px 26px rgba(197,100,40,.22);position:relative;z-index:5}
+.bar .logo{font-size:15.5px;letter-spacing:.2px}
+.bar .stat{background:rgba(255,255,255,.17);border:1px solid rgba(255,255,255,.24);border-radius:15px;padding:7px 14px}
+.bar .stat b{font-size:18px;font-weight:800}
+.bar .bell{border-radius:22px;padding:8px 15px}
+.bar .iconbtn{border-radius:12px;width:36px;height:36px}
+.tabs{gap:6px;padding:11px 14px;background:var(--paper);box-shadow:0 3px 14px rgba(197,100,40,.06);border-bottom:none}
+.tab{border-radius:13px;padding:9px 15px}
+.tab.on{background:var(--mint);color:var(--tealDeep);border-bottom-color:transparent}
+.convitems{padding:9px}
+.citem{border-bottom:none;border-radius:16px;margin-bottom:9px;padding:12px 13px;background:var(--paper);border:1px solid transparent;box-shadow:var(--soft);transition:transform .12s,box-shadow .12s}
+.citem:hover{transform:translateY(-1px);box-shadow:var(--soft2)}
+.citem.sel{background:#FFF6EE;border-color:#F6C79E;box-shadow:none}
+.citem.unread{background:#FFF3E8;border-color:#F8D9BF}
+.citem .ava{width:40px;height:40px;font-size:13px;box-shadow:0 3px 9px rgba(197,100,40,.28)}
+.list{background:transparent}
+.convtools{background:transparent}
+.card,.scard,.panel2,.tablewrap{border-radius:var(--radius);box-shadow:var(--soft);border-color:#F1E7D9}
+.card{transition:box-shadow .12s,transform .12s}.card:hover{box-shadow:var(--soft2);transform:translateY(-1px)}
+.scard b{font-size:28px}
+.btn,.exp{border-radius:12px}
+a.btn{text-decoration:none;display:inline-block;text-align:center}
+.replybar input{border-radius:24px}
+.m{border-radius:16px}
+th{background:#FCF4EB;letter-spacing:.05em}
+td,th{padding:14px 16px}
+/* status pills */
+.spill{border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;margin:2px 5px 2px 0}
+.spill.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.spill.on[data-st="Contacted"]{background:#C9862E;border-color:#C9862E}
+.spill.on[data-st="Booked"]{background:#5E7D66;border-color:#5E7D66}
+.pillcell{white-space:nowrap}.txtlink{text-decoration:none}
+/* bookings filters */
+.filterbar{max-width:1000px;margin:0 auto 12px;display:flex;gap:8px;flex-wrap:wrap}
+.filterbar select{border-radius:10px;padding:8px 12px}
+/* settings tab */
+#settingsTab{flex:1;overflow-y:auto;padding:18px;display:none}
+#settingsTab textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;resize:vertical;background:#fff;outline:none;margin-bottom:8px}
+/* dark-mode harmony for redesigned pieces */
+html[data-theme="dark"] .citem{background:var(--paper);box-shadow:none;border-color:#3A2C20}
+html[data-theme="dark"] .citem.sel{background:#33251A;border-color:#5A4128}
+html[data-theme="dark"] .citem.unread{background:#2A2016;border-color:#4A3524}
+html[data-theme="dark"] .tab.on{background:#33251A;color:var(--coral)}
+html[data-theme="dark"] #settingsTab textarea{background:#2B2018;color:var(--ink)}
 </style></head>
 <body>
 
@@ -196,6 +244,7 @@ input,textarea,select{font-size:16px !important}  /* iOS: 16px stops the zoom-on
     <button class="tab" id="tabCont">👥 Contacts</button>
     <button class="tab" id="tabRep">📊 Reports</button>
     <button class="tab" id="tabRev">⭐ Reviews</button>
+    <button class="tab" id="tabSet">⚙️ Settings</button>
   </div>
 
   <div id="convTab">
@@ -213,6 +262,11 @@ input,textarea,select{font-size:16px !important}  /* iOS: 16px stops the zoom-on
 
   <div id="bookTab">
     <div class="ltop"><div class="ltitle">Bookings &amp; callbacks</div><button id="exportBtn" class="exp">⬇ Export CSV</button></div>
+    <div class="filterbar" id="leadFilters">
+      <select id="fType"><option value="">All types</option><option>Booking</option><option>Callback</option><option>Enquiry</option></select>
+      <select id="fStatus"><option value="">All statuses</option><option>New</option><option>Contacted</option><option>Booked</option></select>
+      <select id="fSort"><option value="new">Newest first</option><option value="old">Oldest first</option></select>
+    </div>
     <div class="tablewrap"><div id="leadsBox"></div></div>
   </div>
 
@@ -244,6 +298,32 @@ input,textarea,select{font-size:16px !important}  /* iOS: 16px stops the zoom-on
       <div class="panel2"><div class="sec-h">Recently requested</div><div id="rrList"></div></div>
     </div>
   </div>
+
+  <div id="settingsTab">
+    <div class="wrap">
+      <div class="panel2">
+        <div class="sec-h">Chat greeting</div>
+        <textarea id="setGreeting" rows="2" placeholder="e.g. G'day {name}! How can we help today?"></textarea>
+        <p class="hint">The first thing Smily says after someone fills the intake form. Use <code>{name}</code> to drop in their first name. Leave blank for the default. <span id="setGreetState"></span></p>
+        <button class="btn" id="saveGreeting">Save greeting</button>
+      </div>
+      <div class="panel2">
+        <div class="sec-h">Notification email</div>
+        <div class="formrow"><input id="setEmail" placeholder="where new bookings are emailed"/><button class="btn" id="saveEmail">Save</button></div>
+        <p class="hint">New bookings, callbacks and enquiries are emailed here. <span id="setEmailState"></span></p>
+      </div>
+      <div class="panel2">
+        <div class="sec-h">Auto-resume timer</div>
+        <div class="formrow"><input id="setResume" type="number" min="0" max="240" placeholder="5" style="max-width:120px"/><span class="hint" style="margin:0;align-self:center;flex:1;min-width:180px">minutes before Smily takes a chat back after reception stops replying</span><button class="btn" id="saveResume">Save</button></div>
+        <p class="hint"><span id="setResumeState"></span></p>
+      </div>
+      <div class="panel2">
+        <div class="sec-h">Google review link</div>
+        <div class="formrow"><input id="setReviewLink" placeholder="Paste your Google 'write a review' link…"/><button class="btn" id="saveReviewLink">Save</button></div>
+        <p class="hint">Also editable in the Reviews tab. <span id="setReviewState"></span></p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -253,6 +333,7 @@ var selectedId = null, detailCount = 0, leadSig = "", tab = "conv";
 var lastSeen = {}; try{ lastSeen=JSON.parse(localStorage.getItem("rdf_seen")||"{}"); }catch(e){}
 function saveSeen(){ try{ localStorage.setItem("rdf_seen",JSON.stringify(lastSeen)); }catch(e){} }
 var ocFilter="open", convQuery="", maxUserTs=0, soundReady=false, actx=null;
+var fType="", fStatus="", fSort="new";
 var QUICK=["We\u2019re open Mon\u2013Fri 9\u20135 and Sat 9\u20134 \ud83d\ude0a","Could you please call us on (02) 9807 9800 so we can lock in a time?","Yes, we can definitely help with that! When suits you best?","Thanks for reaching out \u2014 someone from our team will be with you shortly.","We\u2019re in Top Ryde City, Shop 2035, Level LG1, Ryde NSW 2112.","Great news \u2014 you\u2019re all booked in. See you then! \ud83d\ude04"];
 
 function g(id){ return document.getElementById(id); }
@@ -293,6 +374,7 @@ var TABS = {
   cont: { btn:"tabCont", el:"contactsTab", disp:"block", on:function(){ renderContacts(true); } },
   rep:  { btn:"tabRep",  el:"reportsTab",  disp:"block", on:function(){ renderReports(); } },
   rev:  { btn:"tabRev",  el:"reviewsTab",  disp:"block", on:function(){ renderReviews(true); } },
+  set:  { btn:"tabSet",  el:"settingsTab", disp:"block", on:function(){ renderSettings(); } },
 };
 function showTab(name){
   tab=name;
@@ -318,6 +400,7 @@ function paint(){
   if(tab==="cont") renderContacts(false);
   if(tab==="rep") renderReports();
   if(tab==="rev") renderReviews(false);
+  if(tab==="set") renderSettings();
   checkSound(act);
 }
 function checkSound(act){
@@ -424,26 +507,35 @@ function sendReply(){
 }
 
 /* ---- bookings (only re-render when data actually changes) ---- */
+function telHref(p){ return "tel:"+String(p||"").replace(/[^\d+]/g,""); }
+function smsHref(p){ return "sms:"+String(p||"").replace(/[^\d+]/g,""); }
 function renderLeads(force){
-  var leads=DATA.leads||[];
-  var sig=leads.length+"|"+leads.map(function(l){return l.id+l.status;}).join(",");
+  var all=DATA.leads||[];
+  var rows=all.filter(function(l){
+    if(fType && (l.type||"Booking")!==fType) return false;
+    if(fStatus && l.status!==fStatus) return false;
+    return true;
+  });
+  rows.sort(function(a,b){ return fSort==="old" ? a.createdAt-b.createdAt : b.createdAt-a.createdAt; });
+  var sig=fType+"|"+fStatus+"|"+fSort+"|"+rows.length+"|"+rows.map(function(l){return l.id+l.status;}).join(",");
   if(!force && sig===leadSig) return;
-  // don't yank a dropdown the user is mid-change on
-  if(!force && document.activeElement && document.activeElement.tagName==="SELECT") return;
   leadSig=sig;
   var box=g("leadsBox");
-  if(!leads.length){ box.innerHTML='<div class="empty">No bookings or callbacks yet.</div>'; return; }
+  if(!all.length){ box.innerHTML='<div class="empty2"><span class="ico">\uD83D\uDCE5</span>No bookings or callbacks yet.<br>They\u2019ll appear here the moment someone books through Smily.</div>'; return; }
+  if(!rows.length){ box.innerHTML='<div class="empty">No results match these filters.</div>'; return; }
   var t='<table><tr><th>Patient</th><th>About</th><th>When</th><th>Status</th><th>Received</th></tr>';
-  leads.slice(0,80).forEach(function(l){
-    t+='<tr><td><b>'+esc(l.name)+'</b>'+(l.type==="Callback"?' <span class="tag">Callback</span>':'')+
-      '<br><span style="color:var(--muted);font-size:12px">'+esc(l.phone)+(l.email?' \u00b7 '+esc(l.email):'')+(l.patientType&&l.patientType!=="\u2014"?' \u00b7 '+esc(l.patientType):'')+'</span></td>'+
+  rows.slice(0,120).forEach(function(l){
+    var typeTag=l.type==="Callback"?' <span class="tag">Callback</span>':l.type==="Enquiry"?' <span class="tag" style="background:#E7EFF7;color:#2C5A7C">Enquiry</span>':'';
+    var phone=l.phone?'<a href="'+telHref(l.phone)+'">'+esc(l.phone)+'</a> <a href="'+smsHref(l.phone)+'" class="txtlink" title="Text">\uD83D\uDCAC</a>':'';
+    t+='<tr><td><b>'+esc(l.name)+'</b>'+typeTag+
+      '<br><span style="color:var(--muted);font-size:12px">'+phone+(l.email?' \u00b7 '+esc(l.email):'')+(l.patientType&&l.patientType!=="\u2014"?' \u00b7 '+esc(l.patientType):'')+'</span></td>'+
       '<td>'+esc(l.service)+'</td><td style="font-size:12.5px">'+esc(l.when)+'</td>'+
-      '<td><select data-lead="'+l.id+'">'+["New","Contacted","Booked"].map(function(o){return '<option'+(l.status===o?' selected':'')+'>'+o+'</option>';}).join("")+'</select></td>'+
+      '<td class="pillcell">'+["New","Contacted","Booked"].map(function(o){return '<button class="spill'+(l.status===o?' on':'')+'" data-lead="'+l.id+'" data-st="'+o+'">'+o+'</button>';}).join("")+'</td>'+
       '<td style="color:var(--muted);font-size:11.5px">'+ago(l.createdAt)+' ago</td></tr>';
   });
   box.innerHTML=t+'</table>';
-  box.querySelectorAll("select[data-lead]").forEach(function(sel){
-    sel.onchange=function(){ fetch("/api/admin/lead-status",{method:"POST",headers:hdr(),body:JSON.stringify({id:sel.getAttribute("data-lead"),status:sel.value})}).then(function(){ leadSig=""; }); };
+  box.querySelectorAll("button.spill").forEach(function(btn){
+    btn.onclick=function(){ fetch("/api/admin/lead-status",{method:"POST",headers:hdr(),body:JSON.stringify({id:btn.getAttribute("data-lead"),status:btn.getAttribute("data-st")})}).then(function(){ leadSig=""; refresh(); }); };
   });
 }
 
@@ -507,7 +599,8 @@ function renderContacts(force){
       '</div>'+
       '<textarea data-note="'+esc(c.key)+'" placeholder="Add a private note about this patient…">'+esc(m.notes||"")+'</textarea>'+
       '<div class="crow">'+
-        (c.email?'<button class="btn ghost" data-rr-name="'+esc(c.name||"")+'" data-rr-email="'+esc(c.email)+'" data-rr-phone="'+esc(c.key)+'">📧 Request review</button>':'<span class="hint" style="margin:0">No email on file</span>')+
+        (c.phone?'<a class="btn ghost" href="'+telHref(c.phone)+'">📞 Call</a><a class="btn ghost" href="'+smsHref(c.phone)+'">💬 Text</a>':'')+
+        (c.email?'<button class="btn ghost" data-rr-name="'+esc(c.name||"")+'" data-rr-email="'+esc(c.email)+'" data-rr-phone="'+esc(c.key)+'">📧 Request review</button>':(c.phone?'':'<span class="hint" style="margin:0">No email on file</span>'))+
         '<span class="ok" data-ok="'+esc(c.key)+'"></span>'+
       '</div>';
     box.appendChild(d);
@@ -631,6 +724,29 @@ async function enableAlerts(){
   }catch(e){ if(b){b.textContent=orig;b.disabled=false;} alert("Couldn't turn on alerts: "+(e&&e.message||e)); }
 }
 if(g("bellBtn")) g("bellBtn").onclick=enableAlerts;
+
+/* ================= SETTINGS ================= */
+function renderSettings(){
+  var st=DATA.settings||{};
+  if(g("setGreeting")&&g("setGreeting")!==document.activeElement) g("setGreeting").value=st.greeting||"";
+  if(g("setEmail")&&g("setEmail")!==document.activeElement) g("setEmail").value=st.notifyEmail||"";
+  if(g("setResume")&&g("setResume")!==document.activeElement) g("setResume").value=(st.handbackMinutes!=null?st.handbackMinutes:"");
+  if(g("setReviewLink")&&g("setReviewLink")!==document.activeElement) g("setReviewLink").value=st.reviewLink||"";
+}
+function saveSetting(payload,btn,stateId){
+  var orig=btn.textContent; btn.textContent="Saving\u2026"; btn.disabled=true;
+  fetch("/api/admin/settings",{method:"POST",headers:hdr(),body:JSON.stringify(payload)})
+    .then(function(r){return r.json();})
+    .then(function(j){ if(j&&j.settings) DATA.settings=j.settings; if(stateId&&g(stateId)) g(stateId).innerHTML='<span class="ok">\u2713 saved</span>'; revSig=""; })
+    .catch(function(){ if(stateId&&g(stateId)) g(stateId).innerHTML='<span style="color:var(--amber);font-weight:700">\u26a0 failed</span>'; })
+    .then(function(){ btn.textContent=orig; btn.disabled=false; });
+}
+if(g("saveGreeting")) g("saveGreeting").onclick=function(){ saveSetting({greeting:g("setGreeting").value},this,"setGreetState"); };
+if(g("saveEmail")) g("saveEmail").onclick=function(){ saveSetting({notifyEmail:g("setEmail").value},this,"setEmailState"); };
+if(g("saveResume")) g("saveResume").onclick=function(){ saveSetting({handbackMinutes:g("setResume").value},this,"setResumeState"); };
+if(g("saveReviewLink")) g("saveReviewLink").onclick=function(){ saveSetting({reviewLink:g("setReviewLink").value},this,"setReviewState"); };
+/* bookings filters */
+["fType","fStatus","fSort"].forEach(function(id){ var el=g(id); if(el) el.onchange=function(){ fType=g("fType").value; fStatus=g("fStatus").value; fSort=g("fSort").value; renderLeads(true); }; });
 
 g("exportBtn").onclick = exportLeads;
 </script>

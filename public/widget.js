@@ -15,6 +15,14 @@
   msgs.forEach(function (m) { if (m.ts) seen[m.ts] = 1; });
   var mode = "ai", open = false, started = false, listening = false, recog = null, pollTimer = null;
 
+  // editable greeting (set in the staff panel -> Settings). Falls back to the default if unset.
+  var CFG_GREETING = "";
+  try { fetch(API + "/api/config").then(function (r) { return r.json(); }).then(function (c) { if (c && c.greeting) CFG_GREETING = c.greeting; }).catch(function () {}); } catch (e) {}
+  function greet(fn) {
+    if (CFG_GREETING) return CFG_GREETING.replace(/\{\s*name\s*\}/gi, fn || "").replace(/\s+/g, " ").trim();
+    return "Hi " + fn + "! \uD83D\uDC4B How can I help you today?";
+  }
+
   var C = { teal: "#F17A31", tealDeep: "#C56428", coral: "#F17A31", coralDeep: "#C56428",
     ink: "#38291B", mint: "#FAEFE1", line: "#ECE2D4", muted: "#8A7A68", bg: "#FBF6EF" };
 
@@ -252,7 +260,7 @@
         $("rdf-foot").style.display = ""; chipsEl.style.display = "";
         var fn = name.split(" ")[0];
         if (msg) { push("bot", "Hi " + fn + "! 👋", {}); sendMsg(msg); }   // greet by name, then answer their question
-        else push("bot", "Hi " + fn + "! 👋 How can I help you today?", { chips: ["Book a visit", "Meet the dentists", "Opening hours", "Tooth pain"] });
+        else push("bot", greet(fn), { chips: ["Book a visit", "Meet the dentists", "Opening hours", "Tooth pain"] });
       })
       .catch(function () { $("in-send").textContent = "Try again"; $("in-send").disabled = false; });
   }
@@ -279,7 +287,7 @@
         else if (!intakeDone) showIntake();                       // first time → capture details before chatting
         else { // returning visitor → quietly refresh their details on the server so Smily still knows them
           try { fetch(API + "/api/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: SID, name: savedContact.name, phone: savedContact.phone, email: savedContact.email, silent: true }) }).catch(function(){}); } catch (e) {}
-          push("bot", "Welcome back" + (savedName ? ", " + savedName.split(" ")[0] : "") + "! 😊 How can I help you today?", { chips: ["Book a visit", "Meet the dentists", "Tooth pain", "Opening hours"] });
+          push("bot", CFG_GREETING ? greet(savedName ? savedName.split(" ")[0] : "") : ("Welcome back" + (savedName ? ", " + savedName.split(" ")[0] : "") + "! 😊 How can I help you today?"), { chips: ["Book a visit", "Meet the dentists", "Tooth pain", "Opening hours"] });
         }
       }
       poll(); pollTimer = setInterval(poll, 4000);
