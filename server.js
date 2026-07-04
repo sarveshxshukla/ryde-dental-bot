@@ -25,7 +25,7 @@ const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || "rdftopryde@gmail.com";
 const EMAIL_AFTER_MIN = parseInt(process.env.EMAIL_AFTER_MIN) || 10; // email a chat transcript this many minutes after it goes quiet
 const EMAIL_ALL_CHATS = (process.env.EMAIL_ALL_CHATS || "false") === "true"; // default: email only bookings/callbacks (set true to also email full chat transcripts)
 const NOTIFY_ON = !!(NOTIFY_WEBHOOK_URL || WEB3FORMS_KEY);
-const DATA_FILE = path.join(__dirname, "data.json");
+const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, "data.json"); // set DATA_FILE=/app/data/data.json on the VPS so leads/push survive redeploys
 
 /* -------------------- tiny JSON store -------------------- */
 let db = { sessions: {}, leads: [] };
