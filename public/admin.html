@@ -470,9 +470,23 @@ function selectConv(id){
   updateHead(); appendTranscript(); renderList(activeSessions());
 }
 function toggleResolved(){
-  var s=findSession(selectedId); if(!s)return; var nc=!s.closed;
-  fetch("/api/admin/conversation-status",{method:"POST",headers:hdr(),body:JSON.stringify({sessionId:selectedId,closed:nc})})
-    .then(function(){ s.closed=nc; if(nc){ g("convTab").classList.remove("show-detail"); selectedId=null; } refresh(); });
+  var s=findSession(selectedId); if(!s)return; var nc=!s.closed; var wasId=selectedId;
+  fetch("/api/admin/conversation-status",{method:"POST",headers:hdr(),body:JSON.stringify({sessionId:wasId,closed:nc})})
+    .then(function(){
+      s.closed=nc;
+      if(nc){
+        // resolved -> drop back to the list and clear the reading pane (no stale header/button)
+        selectedId=null;
+        g("convTab").classList.remove("show-detail");
+        var det=document.querySelector(".detail");
+        if(det) det.innerHTML='<div id="detailInner" class="nodetail">Select a conversation on the left to read it and reply.</div>';
+      } else {
+        // reopened -> flip the button back immediately
+        var rb=g("rsvBtn"); if(rb) rb.textContent="\u2713 Resolve";
+        updateHead();
+      }
+      refresh();
+    });
 }
 function toggleQuick(){
   var ex=g("qrpop"); if(ex){ ex.remove(); return; }
