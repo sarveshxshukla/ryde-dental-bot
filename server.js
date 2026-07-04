@@ -231,7 +231,7 @@ async function notify(subject, text) {
       await fetch(NOTIFY_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, message: text, to: NOTIFY_EMAIL }),
+        body: JSON.stringify({ subject, message: text, to: (db.settings.notifyEmail || NOTIFY_EMAIL) }),
       });
     }
   } catch (e) { console.error("notify failed:", e.message); }
@@ -397,7 +397,7 @@ app.post("/api/staff/reply", auth, (req, res) => {
   if (!sessionId || !text) return res.status(400).json({ error: "missing" });
   const s = getSession(sessionId);
   s.messages.push({ role: "team", text: String(text).slice(0, 2000), ts: Date.now() });
-  s.mode = "human"; s.resumeAt = Date.now() + RESUME_MS; s.lastActivity = Date.now(); save();
+  s.mode = "human"; s.resumeAt = Date.now() + (Number.isFinite(parseInt(db.settings.handbackMinutes)) ? parseInt(db.settings.handbackMinutes) : HANDBACK_MIN) * 60000; s.lastActivity = Date.now(); save();
   res.json({ ok: true });
 });
 // hand a chat back to the AI immediately
@@ -429,7 +429,11 @@ app.post("/api/admin/contact-note", auth, (req, res) => {
 
 // save settings (currently just the Google review link)
 app.post("/api/admin/settings", auth, (req, res) => {
-  if (typeof req.body?.reviewLink === "string") db.settings.reviewLink = req.body.reviewLink.trim().slice(0, 500);
+  const b = req.body || {};
+  if (typeof b.reviewLink === "string") db.settings.reviewLink = b.reviewLink.trim().slice(0, 500);
+  if (typeof b.notifyEmail === "string") db.settings.notifyEmail = b.notifyEmail.trim().slice(0, 200);
+  if (typeof b.greeting === "string") db.settings.greeting = b.greeting.trim().slice(0, 300);
+  if (b.handbackMinutes !== undefined) { const m = parseInt(b.handbackMinutes); if (Number.isFinite(m) && m >= 0 && m <= 240) db.settings.handbackMinutes = m; }
   save(); res.json({ ok: true, settings: db.settings });
 });
 
@@ -478,7 +482,8 @@ app.post("/api/push/test", auth, async (req, res) => {
 
 // Fast wake-up ping (the widget calls this on page load so the server is awake by the time someone chats)
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
-app.get("/api/version", (_req, res) => res.json({ build: "2026-07-04-aus-voice", onFileFix: true, freeConsult: true, bookingBtn: true, ausVoice: true, groqFallback: !!GROQ_KEY }));
+app.get("/api/version", (_req, res) => res.json({ build: "2026-07-04-aus-voice-settings", onFileFix: true, freeConsult: true, bookingBtn: true, ausVoice: true, settingsTab: true, groqFallback: !!GROQ_KEY }));
+app.get("/api/config", (_req, res) => res.json({ greeting: (db.settings && db.settings.greeting) || "" })); // public: widget reads the editable greeting
 
 // Intake form before the conversation: capture the visitor's details up front
 // intake form: capture the visitor's details up-front (before the chat) so Smily never re-asks.
