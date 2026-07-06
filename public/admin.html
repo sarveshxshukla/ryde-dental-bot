@@ -172,6 +172,7 @@ body{background:radial-gradient(1100px 560px at 50% -220px,#FDEEE0,#FBF6EF)}
 .bar{background:linear-gradient(120deg,#F58A45,#EA6C22);padding:15px 20px;box-shadow:0 8px 26px rgba(197,100,40,.22);position:relative;z-index:5}
 .bar .logo{font-size:15.5px;letter-spacing:.2px}
 .bar .stat{background:rgba(255,255,255,.17);border:1px solid rgba(255,255,255,.24);border-radius:15px;padding:7px 14px}
+@media(max-width:720px){.bar .stat span{display:block;font-size:9px;color:#FCE3CF;margin-top:2px}.bar .stat{min-width:0;padding:5px 8px}}
 .bar .stat b{font-size:18px;font-weight:800}
 .bar .bell{border-radius:22px;padding:8px 15px}
 .bar .iconbtn{border-radius:12px;width:36px;height:36px}
@@ -229,8 +230,8 @@ html[data-theme="dark"] #settingsTab textarea{background:#2B2018;color:var(--ink
   <div class="bar">
     <div class="logo">🦷 Ryde Dental — Staff Inbox</div>
     <div class="stats">
-      <div class="stat"><b id="s-live">0</b><span>Active chats</span></div>
-      <div class="stat"><b id="s-new">0</b><span>New leads</span></div>
+      <div class="stat"><b id="s-live">0</b><span>Active</span></div>
+      <div class="stat"><b id="s-new">0</b><span>New</span></div>
       <div class="stat"><b id="s-cb">0</b><span>Callbacks</span></div>
     </div>
     <button class="iconbtn" id="themeBtn" title="Toggle dark mode">🌙</button>
@@ -293,7 +294,7 @@ html[data-theme="dark"] #settingsTab textarea{background:#2B2018;color:var(--ink
       <div class="panel2">
         <div class="sec-h">Send a review request</div>
         <div class="formrow"><input id="rrName" placeholder="Patient name (optional)"/><input id="rrEmail" placeholder="Patient email"/><button class="btn" id="rrSend">📧 Send</button></div>
-        <p class="hint" id="rrHint">Sends a friendly email with your review link. Needs the Google Apps Script email method (Web3Forms can only email the clinic).</p>
+        <p class="hint" id="rrHint">Sends a warm email with your Google review link. This needs the Google Apps Script email method switched on (a quick one-time setup).</p>
       </div>
       <div class="panel2"><div class="sec-h">Recently requested</div><div id="rrList"></div></div>
     </div>
