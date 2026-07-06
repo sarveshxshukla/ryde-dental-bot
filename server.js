@@ -457,7 +457,7 @@ app.post("/api/admin/review-request", auth, async (req, res) => {
   if (!r.ok) {
     return res.status(400).json({
       error: r.reason === "no-webhook"
-        ? "Review-request emails need the Google Apps Script email method (Web3Forms can only email the clinic). See the README's EMAIL-SETUP section."
+        ? "To send review requests, the Google Apps Script email method needs switching on (Web3Forms only emails the clinic). It's a quick one-time setup \u2014 see EMAIL-SETUP in the README."
         : "Couldn't send the email \u2014 please try again."
     });
   }
