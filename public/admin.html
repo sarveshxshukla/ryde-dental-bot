@@ -205,6 +205,10 @@ td,th{padding:14px 16px}
 /* bookings filters */
 .filterbar{max-width:1000px;margin:0 auto 12px;display:flex;gap:8px;flex-wrap:wrap}
 .filterbar select{border-radius:10px;padding:8px 12px}
+.exp.danger{background:#F8E7E1;color:#B23B1E;border-color:#F0C9BD}
+.del{background:transparent;border:none;cursor:pointer;font-size:15px;opacity:.5;padding:4px 7px;border-radius:8px;line-height:1}
+.del:hover{opacity:1;background:#F8E7E1}
+.cdel{margin-left:auto}
 /* settings tab */
 #settingsTab{flex:1;overflow-y:auto;padding:18px;display:none}
 #settingsTab textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;resize:vertical;background:#fff;outline:none;margin-bottom:8px}
@@ -262,7 +266,7 @@ html[data-theme="dark"] #settingsTab textarea{background:#2B2018;color:var(--ink
   </div>
 
   <div id="bookTab">
-    <div class="ltop"><div class="ltitle">Bookings &amp; callbacks</div><button id="exportBtn" class="exp">⬇ Export CSV</button></div>
+    <div class="ltop"><div class="ltitle">Bookings &amp; callbacks</div><div style="display:flex;gap:8px"><button id="exportBtn" class="exp">⬇ Export CSV</button><button id="clearBtn" class="exp danger">🗑 Delete all</button></div></div>
     <div class="filterbar" id="leadFilters">
       <select id="fType"><option value="">All types</option><option>Booking</option><option>Callback</option><option>Enquiry</option></select>
       <select id="fStatus"><option value="">All statuses</option><option>New</option><option>Contacted</option><option>Booked</option></select>
@@ -272,7 +276,7 @@ html[data-theme="dark"] #settingsTab textarea{background:#2B2018;color:var(--ink
   </div>
 
   <div id="contactsTab">
-    <div class="searchbar"><input id="contactSearch" placeholder="🔍 Search contacts by name, mobile or email…"/></div>
+    <div class="searchbar" style="display:flex;gap:8px;align-items:center"><input id="contactSearch" placeholder="🔍 Search contacts by name, mobile or email…"/><button id="clearContactsBtn" class="exp danger" style="white-space:nowrap">🗑 Delete all</button></div>
     <div class="wrap"><div class="cgrid" id="contactsBox"></div></div>
   </div>
 
@@ -541,7 +545,7 @@ function renderLeads(force){
   var box=g("leadsBox");
   if(!all.length){ box.innerHTML='<div class="empty2"><span class="ico">\uD83D\uDCE5</span>No bookings or callbacks yet.<br>They\u2019ll appear here the moment someone books through Smily.</div>'; return; }
   if(!rows.length){ box.innerHTML='<div class="empty">No results match these filters.</div>'; return; }
-  var t='<table><tr><th>Patient</th><th>About</th><th>When</th><th>Status</th><th>Received</th></tr>';
+  var t='<table><tr><th>Patient</th><th>About</th><th>When</th><th>Status</th><th>Received</th><th></th></tr>';
   rows.slice(0,120).forEach(function(l){
     var typeTag=l.type==="Callback"?' <span class="tag">Callback</span>':l.type==="Enquiry"?' <span class="tag" style="background:#E7EFF7;color:#2C5A7C">Enquiry</span>':'';
     var phone=l.phone?'<a href="'+telHref(l.phone)+'">'+esc(l.phone)+'</a> <a href="'+smsHref(l.phone)+'" class="txtlink" title="Text">\uD83D\uDCAC</a>':'';
@@ -549,12 +553,14 @@ function renderLeads(force){
       '<br><span style="color:var(--muted);font-size:12px">'+phone+(l.email?' \u00b7 '+esc(l.email):'')+(l.patientType&&l.patientType!=="\u2014"?' \u00b7 '+esc(l.patientType):'')+'</span></td>'+
       '<td>'+esc(l.service)+'</td><td style="font-size:12.5px">'+esc(l.when)+'</td>'+
       '<td class="pillcell">'+["New","Contacted","Booked"].map(function(o){return '<button class="spill'+(l.status===o?' on':'')+'" data-lead="'+l.id+'" data-st="'+o+'">'+o+'</button>';}).join("")+'</td>'+
-      '<td style="color:var(--muted);font-size:11.5px">'+ago(l.createdAt)+' ago</td></tr>';
+      '<td style="color:var(--muted);font-size:11.5px">'+ago(l.createdAt)+' ago</td>'+
+      '<td><button class="del" data-del="'+l.id+'" title="Delete">\uD83D\uDDD1</button></td></tr>';
   });
   box.innerHTML=t+'</table>';
   box.querySelectorAll("button.spill").forEach(function(btn){
     btn.onclick=function(){ fetch("/api/admin/lead-status",{method:"POST",headers:hdr(),body:JSON.stringify({id:btn.getAttribute("data-lead"),status:btn.getAttribute("data-st")})}).then(function(){ leadSig=""; refresh(); }); };
   });
+  box.querySelectorAll("button.del[data-del]").forEach(function(b){ b.onclick=function(){ deleteLead(b.getAttribute("data-del")); }; });
 }
 
 /* ---- export leads as CSV (Name, Mobile, Email, Status only) ---- */
@@ -620,6 +626,7 @@ function renderContacts(force){
         (c.phone?'<a class="btn ghost" href="'+telHref(c.phone)+'">📞 Call</a><a class="btn ghost" href="'+smsHref(c.phone)+'">💬 Text</a>':'')+
         (c.email?(m.reviewRequestedAt?'<button class="btn ghost" disabled style="opacity:.6">✓ Request sent</button>':'<button class="btn ghost" data-rr-name="'+esc(c.name||"")+'" data-rr-email="'+esc(c.email)+'" data-rr-phone="'+esc(c.key)+'">📧 Request review</button>'):(c.phone?'':'<span class="hint" style="margin:0">No email on file</span>'))+
         '<span class="ok" data-ok="'+esc(c.key)+'"></span>'+
+        '<button class="btn ghost cdel" data-del-contact="'+esc(c.key)+'">\uD83D\uDDD1 Delete</button>'+
       '</div>';
     box.appendChild(d);
   });
@@ -634,6 +641,7 @@ function renderContacts(force){
   box.querySelectorAll("[data-rr-email]").forEach(function(btn){
     btn.onclick=function(){ sendReviewRequest(btn.getAttribute("data-rr-name"),btn.getAttribute("data-rr-email"),btn.getAttribute("data-rr-phone"),btn); };
   });
+  box.querySelectorAll("[data-del-contact]").forEach(function(b){ b.onclick=function(){ deleteContact(b.getAttribute("data-del-contact")); }; });
 }
 if(g("contactSearch")) g("contactSearch").oninput=function(){ renderContacts(true); };
 
@@ -765,6 +773,21 @@ if(g("saveResume")) g("saveResume").onclick=function(){ saveSetting({handbackMin
 if(g("saveReviewLink")) g("saveReviewLink").onclick=function(){ saveSetting({reviewLink:g("setReviewLink").value},this,"setReviewState"); };
 /* bookings filters */
 ["fType","fStatus","fSort"].forEach(function(id){ var el=g(id); if(el) el.onchange=function(){ fType=g("fType").value; fStatus=g("fStatus").value; fSort=g("fSort").value; renderLeads(true); }; });
+
+function deleteLead(id){
+  if(!confirm("Delete this booking/lead? This can\u2019t be undone.")) return;
+  fetch("/api/admin/lead-delete",{method:"POST",headers:hdr(),body:JSON.stringify({id:id})}).then(function(){ leadSig=""; contactSig=""; refresh(); });
+}
+function deleteContact(key){
+  if(!confirm("Delete this contact and all their bookings/enquiries? This can\u2019t be undone.")) return;
+  fetch("/api/admin/contact-delete",{method:"POST",headers:hdr(),body:JSON.stringify({key:key})}).then(function(){ leadSig=""; contactSig=""; refresh(); });
+}
+function clearAllLeads(){
+  if(!confirm("Delete ALL bookings, callbacks, enquiries and contacts? This permanently clears everything and can\u2019t be undone.")) return;
+  fetch("/api/admin/leads-clear",{method:"POST",headers:hdr(),body:JSON.stringify({})}).then(function(){ leadSig=""; contactSig=""; refresh(); });
+}
+if(g("clearBtn")) g("clearBtn").onclick=clearAllLeads;
+if(g("clearContactsBtn")) g("clearContactsBtn").onclick=clearAllLeads;
 
 g("exportBtn").onclick = exportLeads;
 </script>
