@@ -209,6 +209,9 @@ td,th{padding:14px 16px}
 .del{background:transparent;border:none;cursor:pointer;font-size:15px;opacity:.5;padding:4px 7px;border-radius:8px;line-height:1}
 .del:hover{opacity:1;background:#F8E7E1}
 .cdel{margin-left:auto}
+/* let the bookings table scroll sideways on mobile so Status/Received/Delete are reachable */
+.tablewrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.tablewrap table{min-width:660px}
 /* settings tab */
 #settingsTab{flex:1;overflow-y:auto;padding:18px;display:none}
 #settingsTab textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;resize:vertical;background:#fff;outline:none;margin-bottom:8px}
