@@ -294,7 +294,7 @@ html[data-theme="dark"] #settingsTab textarea{background:#2B2018;color:var(--ink
       <div class="panel2">
         <div class="sec-h">Send a review request</div>
         <div class="formrow"><input id="rrName" placeholder="Patient name (optional)"/><input id="rrEmail" placeholder="Patient email"/><button class="btn" id="rrSend">📧 Send</button></div>
-        <p class="hint" id="rrHint">Sends a warm email with your Google review link. This needs the Google Apps Script email method switched on (a quick one-time setup).</p>
+        <p class="hint" id="rrHint">Opens a ready-to-send email in your mail app (from the clinic\u2019s Gmail) with your Google review link filled in \u2014 just press send. Set your review link below first.</p>
       </div>
       <div class="panel2"><div class="sec-h">Recently requested</div><div id="rrList"></div></div>
     </div>
@@ -518,7 +518,10 @@ function appendTranscript(){
 function sendReply(){
   var inp=g("replyInput"); if(!inp)return; var t=inp.value.trim(); if(!t)return;
   inp.value="";
-  fetch("/api/staff/reply",{method:"POST",headers:hdr(),body:JSON.stringify({sessionId:selectedId,text:t})}).then(refresh);
+  // show it straight away so the reply never looks like it vanished
+  var s=findSession(selectedId);
+  if(s){ s.messages.push({role:"team",text:t,ts:Date.now()}); s.mode="human"; s.lastActivity=Date.now(); appendTranscript(); updateHead(); }
+  fetch("/api/staff/reply",{method:"POST",headers:hdr(),body:JSON.stringify({sessionId:selectedId,text:t})}).then(refresh).catch(function(){});
 }
 
 /* ---- bookings (only re-render when data actually changes) ---- */
@@ -681,16 +684,14 @@ g("saveLink").onclick=function(){
 g("rrSend").onclick=function(){ sendReviewRequest(g("rrName").value.trim(), g("rrEmail").value.trim(), "", g("rrSend")); };
 function sendReviewRequest(name,email,phone,btn){
   if(!email){ if(btn) flashBtn(btn,"Add an email"); return; }
-  var orig=btn?btn.textContent:""; if(btn){ btn.textContent="Sending…"; btn.disabled=true; }
-  fetch("/api/admin/review-request",{method:"POST",headers:hdr(),body:JSON.stringify({name:name,email:email,phone:phone})})
-    .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
-    .then(function(res){
-      if(!res.ok){ if(btn) flashBtn(btn,"⚠ "+((res.j&&res.j.error)||"Failed"),orig,4000); return; }
-      if(btn){ btn.textContent="✓ Sent"; setTimeout(function(){ btn.textContent=orig; btn.disabled=false; },2000); }
-      if(g("rrName"))g("rrName").value=""; if(btn===g("rrSend")&&g("rrEmail"))g("rrEmail").value="";
-      revSig=""; contactSig=""; refresh();
-    })
-    .catch(function(){ if(btn) flashBtn(btn,"⚠ Failed",orig,2500); });
+  var link=(DATA.settings&&DATA.settings.reviewLink)||"";
+  if(!link){ if(btn) flashBtn(btn,"Set review link first",null,3000); alert("Add your Google review link first: open the Reviews tab (or Settings), paste your 'write a review' link, Save \u2014 then try again."); return; }
+  var first=(name||"").trim().split(/\s+/)[0]||"there";
+  var subject="Thanks for visiting Ryde Dental Family \uD83D\uDE0A";
+  var body="Hi "+first+",\n\nThank you for choosing Ryde Dental Family \u2014 it was lovely to look after you!\n\nIf you have a spare moment, we\u2019d really appreciate a quick Google review. It genuinely helps our practice and means a lot to the team.\n\nLeave a review here: "+link+"\n\nWarm regards,\nThe team at Ryde Dental Family";
+  window.location.href="mailto:"+encodeURIComponent(email)+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
+  if(btn){ var o=btn.textContent; btn.textContent="\u2709 Email opened"; btn.disabled=true; setTimeout(function(){ btn.textContent=o; btn.disabled=false; },2500); }
+  if(g("rrName"))g("rrName").value=""; if(btn===g("rrSend")&&g("rrEmail"))g("rrEmail").value="";
 }
 function flashBtn(btn,msg,orig,ms){ var o=(orig!==undefined&&orig!=="")?orig:btn.textContent; btn.textContent=msg; btn.disabled=true; setTimeout(function(){ btn.textContent=o; btn.disabled=false; }, ms||1800); }
 
