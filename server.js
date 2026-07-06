@@ -428,6 +428,28 @@ app.post("/api/admin/contact-note", auth, (req, res) => {
 });
 
 // save settings (currently just the Google review link)
+app.post("/api/admin/lead-delete", auth, (req, res) => {
+  const id = String(req.body?.id || "");
+  const before = db.leads.length;
+  db.leads = db.leads.filter(l => l.id !== id);
+  save();
+  res.json({ ok: true, removed: before - db.leads.length });
+});
+app.post("/api/admin/contact-delete", auth, (req, res) => {
+  const key = String(req.body?.key || "");
+  if (!key) return res.status(400).json({ error: "missing key" });
+  const keyOf = l => { const d = String(l.phone || "").replace(/\D/g, ""); return d || ("e:" + String(l.email || "").toLowerCase()); };
+  db.leads = db.leads.filter(l => keyOf(l) !== key);
+  if (db.contactMeta && db.contactMeta[key]) delete db.contactMeta[key];
+  save();
+  res.json({ ok: true });
+});
+app.post("/api/admin/leads-clear", auth, (req, res) => {
+  db.leads = [];
+  db.contactMeta = {};
+  save();
+  res.json({ ok: true });
+});
 app.post("/api/admin/settings", auth, (req, res) => {
   const b = req.body || {};
   if (typeof b.reviewLink === "string") db.settings.reviewLink = b.reviewLink.trim().slice(0, 500);
