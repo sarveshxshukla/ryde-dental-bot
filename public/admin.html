@@ -294,7 +294,7 @@ html[data-theme="dark"] #settingsTab textarea{background:#2B2018;color:var(--ink
       <div class="panel2">
         <div class="sec-h">Send a review request</div>
         <div class="formrow"><input id="rrName" placeholder="Patient name (optional)"/><input id="rrEmail" placeholder="Patient email"/><button class="btn" id="rrSend">📧 Send</button></div>
-        <p class="hint" id="rrHint">Opens a ready-to-send email in your mail app (from the clinic\u2019s Gmail) with your Google review link filled in \u2014 just press send. Set your review link below first.</p>
+        <p class="hint" id="rrHint">Emails your Google review link straight to the patient from the clinic\u2019s Gmail \u2014 no mail app, no extra taps. Set your review link below first.</p>
       </div>
       <div class="panel2"><div class="sec-h">Recently requested</div><div id="rrList"></div></div>
     </div>
@@ -618,7 +618,7 @@ function renderContacts(force){
       '<textarea data-note="'+esc(c.key)+'" placeholder="Add a private note about this patient…">'+esc(m.notes||"")+'</textarea>'+
       '<div class="crow">'+
         (c.phone?'<a class="btn ghost" href="'+telHref(c.phone)+'">📞 Call</a><a class="btn ghost" href="'+smsHref(c.phone)+'">💬 Text</a>':'')+
-        (c.email?'<button class="btn ghost" data-rr-name="'+esc(c.name||"")+'" data-rr-email="'+esc(c.email)+'" data-rr-phone="'+esc(c.key)+'">📧 Request review</button>':(c.phone?'':'<span class="hint" style="margin:0">No email on file</span>'))+
+        (c.email?(m.reviewRequestedAt?'<button class="btn ghost" disabled style="opacity:.6">✓ Request sent</button>':'<button class="btn ghost" data-rr-name="'+esc(c.name||"")+'" data-rr-email="'+esc(c.email)+'" data-rr-phone="'+esc(c.key)+'">📧 Request review</button>'):(c.phone?'':'<span class="hint" style="margin:0">No email on file</span>'))+
         '<span class="ok" data-ok="'+esc(c.key)+'"></span>'+
       '</div>';
     box.appendChild(d);
@@ -684,14 +684,16 @@ g("saveLink").onclick=function(){
 g("rrSend").onclick=function(){ sendReviewRequest(g("rrName").value.trim(), g("rrEmail").value.trim(), "", g("rrSend")); };
 function sendReviewRequest(name,email,phone,btn){
   if(!email){ if(btn) flashBtn(btn,"Add an email"); return; }
-  var link=(DATA.settings&&DATA.settings.reviewLink)||"";
-  if(!link){ if(btn) flashBtn(btn,"Set review link first",null,3000); alert("Add your Google review link first: open the Reviews tab (or Settings), paste your 'write a review' link, Save \u2014 then try again."); return; }
-  var first=(name||"").trim().split(/\s+/)[0]||"there";
-  var subject="Thanks for visiting Ryde Dental Family \uD83D\uDE0A";
-  var body="Hi "+first+",\n\nThank you for choosing Ryde Dental Family \u2014 it was lovely to look after you!\n\nIf you have a spare moment, we\u2019d really appreciate a quick Google review. It genuinely helps our practice and means a lot to the team.\n\nLeave a review here: "+link+"\n\nWarm regards,\nThe team at Ryde Dental Family";
-  window.location.href="mailto:"+encodeURIComponent(email)+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
-  if(btn){ var o=btn.textContent; btn.textContent="\u2709 Email opened"; btn.disabled=true; setTimeout(function(){ btn.textContent=o; btn.disabled=false; },2500); }
-  if(g("rrName"))g("rrName").value=""; if(btn===g("rrSend")&&g("rrEmail"))g("rrEmail").value="";
+  var orig=btn?btn.textContent:""; if(btn){ btn.textContent="Sending\u2026"; btn.disabled=true; }
+  fetch("/api/admin/review-request",{method:"POST",headers:hdr(),body:JSON.stringify({name:name,email:email,phone:phone})})
+    .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+    .then(function(res){
+      if(!res.ok){ if(btn) flashBtn(btn,"\u26a0 "+((res.j&&res.j.error)||"Failed"),orig,6000); return; }
+      if(btn){ btn.textContent="\u2713 Request sent"; btn.disabled=true; }
+      if(g("rrName"))g("rrName").value=""; if(btn===g("rrSend")&&g("rrEmail"))g("rrEmail").value="";
+      revSig=""; contactSig=""; refresh();
+    })
+    .catch(function(){ if(btn) flashBtn(btn,"\u26a0 Failed",orig,2500); });
 }
 function flashBtn(btn,msg,orig,ms){ var o=(orig!==undefined&&orig!=="")?orig:btn.textContent; btn.textContent=msg; btn.disabled=true; setTimeout(function(){ btn.textContent=o; btn.disabled=false; }, ms||1800); }
 
