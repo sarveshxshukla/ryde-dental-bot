@@ -243,6 +243,7 @@ html[data-theme="dark"] #settingsTab textarea{background:#2B2018;color:var(--ink
     </div>
     <button class="iconbtn" id="themeBtn" title="Toggle dark mode">🌙</button>
     <button class="bell" id="bellBtn">🔔 Enable alerts</button>
+    <button class="iconbtn" id="logoutBtn" title="Log out" style="width:auto;padding:0 12px;font-weight:600">Log out</button>
     <span class="clock" id="clock"></span>
   </div>
 
@@ -552,7 +553,7 @@ function renderLeads(force){
   rows.slice(0,120).forEach(function(l){
     var typeTag=l.type==="Callback"?' <span class="tag">Callback</span>':l.type==="Enquiry"?' <span class="tag" style="background:#E7EFF7;color:#2C5A7C">Enquiry</span>':'';
     var phone=l.phone?'<a href="'+telHref(l.phone)+'">'+esc(l.phone)+'</a> <a href="'+smsHref(l.phone)+'" class="txtlink" title="Text">\uD83D\uDCAC</a>':'';
-    t+='<tr><td><b>'+esc(l.name)+'</b>'+typeTag+
+    t+='<tr><td>'+(l.sessionId?'<b class="leadopen" data-open="'+esc(l.sessionId)+'" title="Open this chat" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px">'+esc(l.name)+'</b>':'<b>'+esc(l.name)+'</b>')+typeTag+
       '<br><span style="color:var(--muted);font-size:12px">'+phone+(l.email?' \u00b7 '+esc(l.email):'')+(l.patientType&&l.patientType!=="\u2014"?' \u00b7 '+esc(l.patientType):'')+'</span></td>'+
       '<td>'+esc(l.service)+'</td><td style="font-size:12.5px">'+esc(l.when)+'</td>'+
       '<td class="pillcell">'+["New","Contacted","Booked"].map(function(o){return '<button class="spill'+(l.status===o?' on':'')+'" data-lead="'+l.id+'" data-st="'+o+'">'+o+'</button>';}).join("")+'</td>'+
@@ -564,6 +565,7 @@ function renderLeads(force){
     btn.onclick=function(){ fetch("/api/admin/lead-status",{method:"POST",headers:hdr(),body:JSON.stringify({id:btn.getAttribute("data-lead"),status:btn.getAttribute("data-st")})}).then(function(){ leadSig=""; refresh(); }); };
   });
   box.querySelectorAll("button.del[data-del]").forEach(function(b){ b.onclick=function(){ deleteLead(b.getAttribute("data-del")); }; });
+  box.querySelectorAll(".leadopen[data-open]").forEach(function(b){ b.onclick=function(){ openLeadChat(b.getAttribute("data-open")); }; });
 }
 
 /* ---- export leads as CSV (Name, Mobile, Email, Status only) ---- */
@@ -788,6 +790,13 @@ function deleteContact(key){
 function clearAllLeads(){
   if(!confirm("Delete ALL bookings, callbacks, enquiries and contacts? This permanently clears everything and can\u2019t be undone.")) return;
   fetch("/api/admin/leads-clear",{method:"POST",headers:hdr(),body:JSON.stringify({})}).then(function(){ leadSig=""; contactSig=""; refresh(); });
+}
+function logout(){ if(!confirm("Log out of the staff inbox?")) return; try{ localStorage.removeItem("rdf_admin_tok"); }catch(e){} location.reload(); }
+if(g("logoutBtn")) g("logoutBtn").onclick=logout;
+function openLeadChat(sid){
+  var sess=findSession(sid);
+  if(!sess){ alert("This lead came in through the booking form \u2014 there\u2019s no chat conversation to open."); return; }
+  showTab("conv"); selectConv(sid);
 }
 if(g("clearBtn")) g("clearBtn").onclick=clearAllLeads;
 if(g("clearContactsBtn")) g("clearContactsBtn").onclick=clearAllLeads;

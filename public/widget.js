@@ -30,6 +30,10 @@
     "#rdfw,#rdfw *{box-sizing:border-box;font-family:'Inter',-apple-system,Segoe UI,Roboto,sans-serif}" +
     "#rdf-btn{position:fixed;right:20px;bottom:20px;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;z-index:2147483000;box-shadow:0 10px 30px rgba(10,63,61,.35);background:linear-gradient(135deg," + C.teal + "," + C.tealDeep + ");display:flex;align-items:center;justify-content:center;transition:transform .2s}" +
     "#rdf-btn:hover{transform:scale(1.06)}" +
+    "#rdf-pop{position:fixed;right:20px;bottom:92px;max-width:235px;background:#fff;color:" + C.ink + ";border:1px solid " + C.line + ";padding:12px 30px 12px 14px;border-radius:16px 16px 4px 16px;box-shadow:0 12px 34px rgba(10,63,61,.22);z-index:2147482999;cursor:pointer;font-size:14px;line-height:1.45;display:none}" +
+    "#rdf-pop.on{display:block;animation:rdfup .3s ease}" +
+    "#rdf-pop b{color:" + C.teal + ";font-size:12.5px;display:block;margin-bottom:2px}" +
+    "#rdf-pop .x{position:absolute;top:5px;right:9px;font-size:17px;color:" + C.muted + ";line-height:1}" +
     "#rdf-panel{position:fixed;right:20px;bottom:92px;width:380px;max-width:calc(100vw - 32px);height:600px;max-height:calc(100vh - 120px);background:" + C.bg + ";border:1px solid " + C.line + ";border-radius:22px;overflow:hidden;display:none;flex-direction:column;z-index:2147483000;box-shadow:0 24px 60px rgba(10,63,61,.25)}" +
     "#rdf-panel.on{display:flex;animation:rdfup .25s ease}" +
     "@keyframes rdfup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}" +
@@ -249,8 +253,8 @@
       '<div class="rdf-it">👋 Hi! Who are we chatting with?</div>' +
       '<input class="rdf-fi" id="in-name" placeholder="Name *" autocomplete="name"/>' +
       '<input class="rdf-fi" id="in-phone" placeholder="Mobile *" inputmode="tel" autocomplete="tel"/>' +
-      '<input class="rdf-fi" id="in-email" placeholder="Email *" inputmode="email" autocomplete="email"/>' +
-      '<textarea class="rdf-fi rdf-ita" id="in-msg" placeholder="Your question (optional)"></textarea>' +
+      '<input class="rdf-fi" id="in-email" placeholder="Email (optional)" inputmode="email" autocomplete="email"/>' +
+      '<textarea class="rdf-fi rdf-ita" id="in-msg" placeholder="Your question *"></textarea>' +
       '<label class="rdf-consent"><input type="checkbox" id="in-consent"/><span>I agree to be contacted by phone or email about my enquiry.</span></label>' +
       '<button id="in-send" class="rdf-fbtn">Start chat →</button>' +
       '<div class="rdf-ierr" id="in-err"></div></div>';
@@ -261,8 +265,8 @@
   function submitIntake() {
     var name = $("in-name").value.trim(), phone = $("in-phone").value.trim(), email = $("in-email").value.trim(), msg = $("in-msg").value.trim(), consent = $("in-consent").checked;
     var err = $("in-err");
-    if (!name || !phone || !email) { err.textContent = "Please add your name, mobile and email."; return; }
-    if (!/.+@.+\..+/.test(email)) { err.textContent = "That email doesn't look right."; return; }
+    if (!name || !phone || !msg) { err.textContent = "Please add your name, mobile and your question."; return; }
+    if (email && !/.+@.+\..+/.test(email)) { err.textContent = "That email doesn't look right."; return; }
     if (!consent) { err.textContent = "Please tick the box so we can reply to you."; return; }
     $("in-send").textContent = "Starting…"; $("in-send").disabled = true;
     fetch(API + "/api/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: SID, name: name, phone: phone, email: email, message: msg }) })
@@ -294,6 +298,7 @@
   $("rdf-btn").onclick = function () {
     open = !open; $("rdf-panel").className = open ? "on" : "";
     if (open) {
+      var pp = $("rdf-pop"); if (pp) { pp.className = ""; try { localStorage.setItem("rdf_greeted", "1"); } catch (e) {} }
       prewarm();
       if (!started) {
         started = true;
@@ -314,5 +319,17 @@
   $("rdf-mic").onclick = toggleMic;
   $("rdf-clip").onclick = function () { $("rdf-file").click(); };
   $("rdf-file").onchange = function (e) { var f = e.target.files[0]; if (!f) return; e.target.value = ""; push("user", "📎 " + f.name); sendMsg("I've attached a file: " + f.name); };
+  // one-time greeting popup by the launcher (shows once per visitor)
+  (function () {
+    try { if (localStorage.getItem("rdf_greeted")) return; } catch (e) {}
+    if (msgs && msgs.length) return; // returning visitor with history — stay quiet
+    var pop = document.createElement("div"); pop.id = "rdf-pop";
+    pop.innerHTML = '<span class="x" id="rdf-popx">&times;</span><b>Smily</b>Hi there! \uD83D\uDC4B I\u2019m Smily \u2014 how can I help you today?';
+    root.appendChild(pop);
+    function dismiss() { pop.className = ""; try { localStorage.setItem("rdf_greeted", "1"); } catch (e) {} }
+    setTimeout(function () { if (!open) pop.className = "on"; }, 2500);
+    pop.onclick = function (e) { if (e.target && e.target.id === "rdf-popx") { dismiss(); return; } dismiss(); $("rdf-btn").click(); };
+  })();
+
   prewarm();
 })();
