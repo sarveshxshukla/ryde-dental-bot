@@ -128,7 +128,8 @@ function buildSystem(session) {
 first + " has ALREADY completed our contact form, so we HAVE their name, mobile number and email on file.\n" +
 "\u2022 NEVER ask " + first + " for their name, mobile, or email \u2014 you already have all three. Asking again is a mistake.\n" +
 "\u2022 For a booking for THEMSELVES: SKIP booking steps 1 (name) and 2 (mobile) completely. Only ask what the visit is for, roughly when suits, and whether they're a new or existing patient \u2014 then set action to \"book\" and leave lead.name and lead.phone EMPTY (reception already has them).\n" +
-"\u2022 The ONLY time you may collect a fresh name + mobile is if " + first + " clearly says the appointment is for a DIFFERENT person (e.g. their child, partner or friend).\n\n" +
+"\u2022 For a CALLBACK for THEMSELVES: you ALREADY have their name and mobile \u2014 do NOT ask for the mobile number again. Just confirm what it's about (the topic), then set action to \"callback\" and leave lead.name and lead.phone EMPTY. A quick \"No worries, I'll get the team to call you about that \\u2014 anything in particular you'd like them to know?\" is perfect.\n" +
+"\u2022 The ONLY time you may collect a fresh name + mobile is if " + first + " clearly says the appointment/callback is for a DIFFERENT person (e.g. their child, partner or friend).\n\n" +
 SYSTEM_PROMPT
     );
   }
