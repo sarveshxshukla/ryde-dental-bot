@@ -80,7 +80,21 @@
     ".rdf-consent{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:" + C.muted + ";line-height:1.35;cursor:pointer}" +
     ".rdf-consent input{margin-top:1px;width:16px;height:16px;flex-shrink:0;accent-color:" + C.teal + "}" +
     ".rdf-ierr{font-size:12px;color:#C0392B}.rdf-ierr:empty{display:none}" +
-    "@keyframes rdfspin{to{transform:rotate(360deg)}}";
+    "@keyframes rdfspin{to{transform:rotate(360deg)}}" +
+    /* ---- armor: stop the host theme's button/link CSS bleeding into the widget ---- */
+    "#rdfw button,#rdfw a,#rdfw input,#rdfw textarea{font-family:inherit!important;text-transform:none!important;letter-spacing:normal!important;text-shadow:none!important;margin:0!important;min-width:0!important;min-height:0!important;line-height:normal!important}" +
+    "#rdfw #rdf-btn{width:60px!important;height:60px!important;padding:0!important;border:none!important;border-radius:50%!important;background:linear-gradient(135deg," + C.teal + "," + C.tealDeep + ")!important;box-shadow:0 10px 30px rgba(10,63,61,.35)!important}" +
+    "#rdfw #rdf-btn svg,#rdfw #rdf-head .av svg{display:block!important;width:20px!important;height:20px!important;opacity:1!important;visibility:visible!important}" +
+    "#rdfw svg{vertical-align:middle;max-width:none!important}" +
+    "#rdfw .rdf-chip{background:#fff!important;color:" + C.teal + "!important;padding:6px 12px!important;font-size:13px!important;font-weight:500!important;border:1px solid " + C.line + "!important;border-radius:20px!important;width:auto!important;height:auto!important;box-shadow:none!important;text-align:center}" +
+    "#rdfw .rdf-cta{background:#1FA463!important;color:#fff!important;padding:11px 16px!important;font-size:13px!important;border:none!important;border-radius:12px!important;width:auto!important;height:auto!important}" +
+    "#rdfw #rdf-send{width:42px!important;height:42px!important;padding:0!important;border:none!important;border-radius:50%!important;background:" + C.teal + "!important;box-shadow:none!important}" +
+    "#rdfw .rdf-ic{width:30px!important;height:30px!important;padding:0!important;border:none!important;border-radius:50%!important;background:none!important;box-shadow:none!important}" +
+    "#rdfw .rdf-ic.on{background:#FBE1D1!important}" +
+    "#rdfw #rdf-book,#rdfw #rdf-x{background:none!important;border:none!important;color:#fff!important;box-shadow:none!important;padding:4px!important}" +
+    "#rdfw .rdf-fbtn{background:" + C.coral + "!important;color:#fff!important;padding:12px!important;border:none!important;border-radius:10px!important;width:100%!important;box-shadow:none!important}" +
+    "#rdfw .rdf-seg button{background:#fff!important;color:" + C.muted + "!important;padding:10px!important;border:1px solid " + C.line + "!important;border-radius:10px!important;width:auto!important;box-shadow:none!important}" +
+    "#rdfw .rdf-seg button.on{background:" + C.teal + "!important;color:#EAFBF8!important;border-color:" + C.teal + "!important}";
 
   var spark = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2.2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>';
   var sparkSm = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2.2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>';
