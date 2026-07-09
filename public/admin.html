@@ -172,7 +172,21 @@ body{background:radial-gradient(1100px 560px at 50% -220px,#FDEEE0,#FBF6EF)}
 .bar{background:linear-gradient(120deg,#F58A45,#EA6C22);padding:15px 20px;box-shadow:0 8px 26px rgba(197,100,40,.22);position:relative;z-index:5}
 .bar .logo{font-size:15.5px;letter-spacing:.2px}
 .bar .stat{background:rgba(255,255,255,.17);border:1px solid rgba(255,255,255,.24);border-radius:15px;padding:7px 14px}
-@media(max-width:720px){.bar .stat span{display:block;font-size:9px;color:#FCE3CF;margin-top:2px}.bar .stat{min-width:0;padding:5px 8px}}
+.bar{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-wrap:nowrap}
+.bar::-webkit-scrollbar{display:none}
+.bar .logo{white-space:nowrap;flex-shrink:0}
+.bar .stats{flex-shrink:0}
+.bar .stat{flex-shrink:0}
+.bar .bell,.bar .iconbtn,.bar #logoutBtn{flex-shrink:0;white-space:nowrap}
+@media(max-width:720px){
+  .bar{padding:11px 14px;gap:9px}
+  .bar .logo{font-size:13.5px}
+  .bar .logo .full{display:none}
+  .bar .stat span{display:block;font-size:9px;color:#FCE3CF;margin-top:2px}
+  .bar .stat{min-width:0;padding:5px 9px}
+  .bar .stat b{font-size:16px}
+  .bar .bell{padding:7px 11px;font-size:11.5px}
+}
 .bar .stat b{font-size:18px;font-weight:800}
 .bar .bell{border-radius:22px;padding:8px 15px}
 .bar .iconbtn{border-radius:12px;width:36px;height:36px}
@@ -235,7 +249,7 @@ html[data-theme="dark"] #settingsTab textarea{background:#2B2018;color:var(--ink
 
 <div id="app" style="display:none;flex:1;flex-direction:column;min-height:0">
   <div class="bar">
-    <div class="logo">🦷 Ryde Dental — Staff Inbox</div>
+    <div class="logo">🦷 Ryde Dental<span class="full"> — Staff Inbox</span></div>
     <div class="stats">
       <div class="stat"><b id="s-live">0</b><span>Active</span></div>
       <div class="stat"><b id="s-new">0</b><span>New</span></div>
@@ -464,7 +478,8 @@ function selectConv(id){
     '<div class="dhead"><button class="back" id="backBtn">&larr;</button>'+
     '<div><div class="who" id="dWho"></div><div class="sub" id="dSub"></div></div>'+
     '<button class="hb" id="hbBtn" style="display:none">Hand back to Smily</button>'+
-    '<button class="rsv" id="rsvBtn"></button></div>'+
+    '<button class="rsv" id="rsvBtn"></button>'+
+    '<button class="del" id="delChatBtn" title="Delete this chat" style="margin-left:6px;font-size:16px">\uD83D\uDDD1</button></div>'+
     '<div class="tr" id="transcript"></div>'+
     '<div class="replybar"><div class="qrwrap"><button class="qr" id="qrBtn" title="Quick replies">\u26a1</button></div>'+
     '<input id="replyInput" placeholder="Reply as reception (pauses Smily)\u2026" autocomplete="off"/>'+
@@ -472,11 +487,25 @@ function selectConv(id){
   g("backBtn").onclick=function(){ g("convTab").classList.remove("show-detail"); selectedId=null; renderList(activeSessions()); };
   g("hbBtn").onclick=function(){ if(selectedId) fetch("/api/staff/handback",{method:"POST",headers:hdr(),body:JSON.stringify({sessionId:selectedId})}).then(refresh); };
   g("rsvBtn").onclick=toggleResolved;
+  g("delChatBtn").onclick=deleteChat;
   g("qrBtn").onclick=toggleQuick;
   g("replySend").onclick=sendReply;
   g("replyInput").addEventListener("keydown",function(e){ if(e.key==="Enter") sendReply(); });
   g("convTab").classList.add("show-detail");
   updateHead(); appendTranscript(); renderList(activeSessions());
+}
+function deleteChat(){
+  if(!selectedId) return;
+  if(!confirm("Delete this whole conversation? This can\u2019t be undone.")) return;
+  var sid=selectedId;
+  fetch("/api/admin/conversation-delete",{method:"POST",headers:hdr(),body:JSON.stringify({sessionId:sid})})
+    .then(function(){
+      selectedId=null;
+      g("convTab").classList.remove("show-detail");
+      var det=document.querySelector(".detail");
+      if(det) det.innerHTML='<div id="detailInner" class="nodetail">Select a conversation on the left to read it and reply.</div>';
+      refresh();
+    });
 }
 function toggleResolved(){
   var s=findSession(selectedId); if(!s)return; var nc=!s.closed; var wasId=selectedId;
