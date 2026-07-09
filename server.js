@@ -429,6 +429,13 @@ app.post("/api/admin/contact-note", auth, (req, res) => {
 });
 
 // save settings (currently just the Google review link)
+app.post("/api/admin/conversation-delete", auth, (req, res) => {
+  const sid = String(req.body?.sessionId || "");
+  if (!sid) return res.status(400).json({ error: "missing sessionId" });
+  db.sessions = (db.sessions || []).filter(s => s.id !== sid);
+  save();
+  res.json({ ok: true });
+});
 app.post("/api/admin/lead-delete", auth, (req, res) => {
   const id = String(req.body?.id || "");
   const before = db.leads.length;
