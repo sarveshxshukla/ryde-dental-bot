@@ -28,22 +28,22 @@
 
   var css = "" +
     "#rdfw,#rdfw *{box-sizing:border-box;font-family:'Inter',-apple-system,Segoe UI,Roboto,sans-serif}" +
-    "#rdf-btn{position:fixed;right:20px;bottom:20px;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;z-index:2147483000;box-shadow:0 10px 30px rgba(10,63,61,.35);background:linear-gradient(135deg," + C.teal + "," + C.tealDeep + ");display:flex;align-items:center;justify-content:center;transition:transform .2s}" +
+    "#rdf-btn{position:fixed;right:18px;bottom:112px;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;z-index:2147483000;box-shadow:0 10px 30px rgba(10,63,61,.35);background:linear-gradient(135deg," + C.teal + "," + C.tealDeep + ");display:flex;align-items:center;justify-content:center;transition:transform .2s}" +
     "#rdf-btn:hover{transform:scale(1.06)}" +
-    "#rdf-pop{position:fixed;right:20px;bottom:92px;max-width:235px;background:#fff;color:" + C.ink + ";border:1px solid " + C.line + ";padding:12px 30px 12px 14px;border-radius:16px 16px 4px 16px;box-shadow:0 12px 34px rgba(10,63,61,.22);z-index:2147482999;cursor:pointer;font-size:14px;line-height:1.45;display:none}" +
+    "#rdf-pop{position:fixed;right:18px;bottom:184px;max-width:235px;background:#fff;color:" + C.ink + ";border:1px solid " + C.line + ";padding:12px 30px 12px 14px;border-radius:16px 16px 4px 16px;box-shadow:0 12px 34px rgba(10,63,61,.22);z-index:2147482999;cursor:pointer;font-size:14px;line-height:1.45;display:none}" +
     "#rdf-pop.on{display:block;animation:rdfup .3s ease}" +
     "#rdf-pop b{color:" + C.teal + ";font-size:12.5px;display:block;margin-bottom:2px}" +
     "#rdf-pop .x{position:absolute;top:5px;right:9px;font-size:17px;color:" + C.muted + ";line-height:1}" +
-    "#rdf-panel{position:fixed;right:20px;bottom:92px;width:380px;max-width:calc(100vw - 32px);height:600px;max-height:calc(100vh - 120px);background:" + C.bg + ";border:1px solid " + C.line + ";border-radius:22px;overflow:hidden;display:none;flex-direction:column;z-index:2147483000;box-shadow:0 24px 60px rgba(10,63,61,.25)}" +
+    "#rdf-panel{position:fixed;right:18px;bottom:182px;width:380px;max-width:calc(100vw - 30px);height:600px;max-height:calc(100vh - 218px);background:" + C.bg + ";border:1px solid " + C.line + ";border-radius:22px;overflow:hidden;display:none;flex-direction:column;z-index:2147483000;box-shadow:0 24px 60px rgba(10,63,61,.25)}" +
     "#rdf-panel.on{display:flex;animation:rdfup .25s ease}" +
     "@keyframes rdfup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}" +
-    "#rdf-head{padding:14px 16px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg," + C.teal + "," + C.tealDeep + ")}" +
+    "#rdf-head{padding:14px 15px 14px 16px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg," + C.teal + "," + C.tealDeep + ")}" +
     "#rdf-head .av{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;flex-shrink:0}" +
     "#rdf-head .nm{color:#fff;font-weight:700;font-size:15px;line-height:1.1}" +
     "#rdf-head .st{color:#FCE3CF;font-size:12px;display:flex;align-items:center;gap:6px}" +
     "#rdf-head.human{background:linear-gradient(135deg," + C.coralDeep + ",#954B1E)}#rdf-head.human .st{color:#FFE0C8}" +
-    "#rdf-book{background:none;border:none;color:#fff;cursor:pointer;padding:4px;display:flex;align-items:center;margin-left:auto}" +
-    "#rdf-x{margin-left:6px;background:none;border:none;color:#fff;cursor:pointer;font-size:20px;opacity:.85}" +
+    "#rdf-book{background:rgba(255,255,255,.16);border:none;color:#fff;cursor:pointer;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0}" +
+    "#rdf-x{margin-left:9px;background:rgba(255,255,255,.16);border:none;color:#fff;cursor:pointer;font-size:24px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}" +
     "#rdf-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}" +
     ".rdf-row{display:flex;gap:8px;align-items:flex-end;animation:rdfin .25s ease}" +
     "@keyframes rdfin{from{opacity:0;transform:translateY(6px)}to{opacity:1}}" +
@@ -76,11 +76,12 @@
     ".rdf-seg{display:flex;gap:8px}.rdf-seg button{flex:1;padding:10px;border:1px solid " + C.line + ";background:#fff;border-radius:10px;cursor:pointer;font-size:13px;color:" + C.muted + "}.rdf-seg button.on{background:" + C.teal + ";color:#EAFBF8;border-color:" + C.teal + "}" +
     ".rdf-fbtn{padding:12px;border:none;border-radius:10px;background:" + C.coral + ";color:#fff;font-weight:700;cursor:pointer;font-size:14px}" +
     ".rdf-fn{font-size:11px;color:" + C.muted + ";text-align:center}" +
-    "#rdf-intake{padding:13px 16px;overflow-y:auto;animation:rdfin .2s ease}" +
-    ".rdf-iw{display:flex;flex-direction:column;gap:7px}" +
-    ".rdf-it{font-weight:700;font-size:14.5px;color:" + C.ink + ";line-height:1.45}" +
+    "#rdf-intake{padding:18px 16px;overflow-y:auto;animation:rdfin .2s ease;margin:auto 0;width:100%}" +
+    "#rdf-body.intake{padding:0;justify-content:center}" +
+    ".rdf-iw{display:flex;flex-direction:column;gap:11px}" +
+    ".rdf-it{font-weight:700;font-size:15.5px;color:" + C.ink + ";line-height:1.4}" +
     ".rdf-isub{font-size:12px;color:" + C.muted + ";margin:-4px 0 4px;line-height:1.45}" +
-    ".rdf-ita{min-height:40px;resize:vertical;font-family:inherit}" +
+    ".rdf-ita{min-height:62px;resize:vertical;font-family:inherit}" +
     ".rdf-consent{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:" + C.muted + ";line-height:1.35;cursor:pointer}" +
     ".rdf-consent input{margin-top:1px;width:16px;height:16px;flex-shrink:0;accent-color:" + C.teal + "}" +
     ".rdf-ierr{font-size:12px;color:#C0392B}.rdf-ierr:empty{display:none}" +
@@ -95,7 +96,9 @@
     "#rdfw #rdf-send{width:42px!important;height:42px!important;padding:0!important;border:none!important;border-radius:50%!important;background:" + C.teal + "!important;box-shadow:none!important}" +
     "#rdfw .rdf-ic{width:30px!important;height:30px!important;padding:0!important;border:none!important;border-radius:50%!important;background:none!important;box-shadow:none!important}" +
     "#rdfw .rdf-ic.on{background:#FBE1D1!important}" +
-    "#rdfw #rdf-book,#rdfw #rdf-x{background:none!important;border:none!important;color:#fff!important;box-shadow:none!important;padding:4px!important}" +
+    "#rdfw #rdf-book,#rdfw #rdf-x{width:40px!important;height:40px!important;padding:0!important;border-radius:50%!important;background:rgba(255,255,255,.16)!important;border:none!important;color:#fff!important;box-shadow:none!important;display:flex!important;align-items:center;justify-content:center;flex-shrink:0}" +
+    "#rdfw #rdf-x{font-size:24px!important;margin-left:9px!important}" +
+    "#rdfw #rdf-book svg{width:21px!important;height:21px!important}" +
     "#rdfw .rdf-fbtn{background:" + C.coral + "!important;color:#fff!important;padding:12px!important;border:none!important;border-radius:10px!important;width:100%!important;box-shadow:none!important}" +
     "#rdfw .rdf-seg button{background:#fff!important;color:" + C.muted + "!important;padding:10px!important;border:1px solid " + C.line + "!important;border-radius:10px!important;width:auto!important;box-shadow:none!important}" +
     "#rdfw .rdf-seg button.on{background:" + C.teal + "!important;color:#EAFBF8!important;border-color:" + C.teal + "!important}";
@@ -103,7 +106,7 @@
   var spark = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2.2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>';
   var sparkSm = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2.2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>';
   var head = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 14v-2a9 9 0 0118 0v2"/><path d="M21 16a2 2 0 01-2 2h-1v-5h1a2 2 0 012 2zM3 16a2 2 0 002 2h1v-5H5a2 2 0 00-2 2z"/></svg>';
-  var calI = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+  var calI = '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
   var micI = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8A7A68" stroke-width="2"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0014 0M12 17v4"/></svg>';
   var clipI = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8A7A68" stroke-width="2"><path d="M21 12.5l-8.5 8.5a5 5 0 01-7-7l9-9a3.5 3.5 0 015 5l-9 9a2 2 0 01-3-3l8.5-8.5"/></svg>';
   var sendI = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
@@ -248,15 +251,19 @@
     body.innerHTML = "";
     $("rdf-foot").style.display = "none";   // hide the message bar until details are in
     chipsEl.style.display = "none";
+    body.className = "intake";
     var f = el("div"); f.id = "rdf-intake";
     f.innerHTML = '<div class="rdf-iw">' +
-      '<div class="rdf-it">👋 Hi! Who are we chatting with?</div>' +
+      '<div class="rdf-it">\uD83D\uDC4B Lovely to meet you \u2014 who am I speaking with?</div>' +
+      '<div class="rdf-isub">Just a few details so our team can look after you properly.</div>' +
+      '<div class="rdf-isub">Just a few quick details so we can help you properly.</div>' +
       '<input class="rdf-fi" id="in-name" placeholder="Name *" autocomplete="name"/>' +
       '<input class="rdf-fi" id="in-phone" placeholder="Mobile *" inputmode="tel" autocomplete="tel"/>' +
       '<input class="rdf-fi" id="in-email" placeholder="Email (optional)" inputmode="email" autocomplete="email"/>' +
       '<textarea class="rdf-fi rdf-ita" id="in-msg" placeholder="Your question *"></textarea>' +
       '<label class="rdf-consent"><input type="checkbox" id="in-consent"/><span>I agree to be contacted by phone or email about my enquiry.</span></label>' +
       '<button id="in-send" class="rdf-fbtn">Start chat →</button>' +
+      '<div class="rdf-fn" style="margin-top:2px">🔒 Your details stay private — used only to help with your enquiry.</div>' +
       '<div class="rdf-ierr" id="in-err"></div></div>';
     body.appendChild(f);
     $("in-send").onclick = submitIntake;
@@ -275,6 +282,7 @@
         try { localStorage.setItem("rdf_contact", JSON.stringify({ name: name, phone: phone, email: email })); } catch (e) {}
         intakeDone = true; savedName = name; savedContact = { name: name, phone: phone, email: email };
         var fm = $("rdf-intake"); if (fm) fm.remove();
+        body.className = "";
         $("rdf-foot").style.display = ""; chipsEl.style.display = "";
         var fn = name.split(" ")[0];
         if (msg) { push("bot", "Hi " + fn + "! 👋", {}); sendMsg(msg); }   // greet by name, then answer their question
