@@ -18,6 +18,18 @@
   // editable greeting (set in the staff panel -> Settings). Falls back to the default if unset.
   var CFG_GREETING = "";
   try { fetch(API + "/api/config").then(function (r) { return r.json(); }).then(function (c) { if (c && c.greeting) CFG_GREETING = c.greeting; }).catch(function () {}); } catch (e) {}
+  // --- Australian mobile validation -------------------------------------------------
+  // Accepts: 04xx xxx xxx | 04xxxxxxxx | +614xxxxxxxx | 614xxxxxxxx | 4xxxxxxxx
+  // Ignores spaces, dashes, brackets and dots. Rejects landlines and junk.
+  function auMobile(raw) {
+    var d = String(raw || "").replace(/[\s\-().]/g, "");
+    if (d.indexOf("+61") === 0) d = "0" + d.slice(3);
+    else if (d.indexOf("0061") === 0) d = "0" + d.slice(4);
+    else if (d.indexOf("61") === 0 && d.length === 11) d = "0" + d.slice(2);
+    else if (d.length === 9 && d.charAt(0) === "4") d = "0" + d;
+    return /^04\d{8}$/.test(d) ? d : null;   // returns the tidy 04xxxxxxxx form, or null
+  }
+
   function greet(fn) {
     if (CFG_GREETING) return CFG_GREETING.replace(/\{\s*name\s*\}/gi, fn || "").replace(/\s+/g, " ").trim();
     return "Hi " + fn + "! \uD83D\uDC4B How can I help you today?";
@@ -224,7 +236,7 @@
     f.innerHTML = '<div class="rdf-fh">Book an appointment <button id="rdf-fx" aria-label="Close">&times;</button></div>' +
       '<div class="rdf-fb">' +
       '<input class="rdf-fi" id="bk-name" placeholder="Full name *"/>' +
-      '<input class="rdf-fi" id="bk-phone" placeholder="Mobile *"/>' +
+      '<input class="rdf-fi" id="bk-phone" placeholder="Mobile * (e.g. 0412 345 678)" inputmode="tel"/>' +
       '<input class="rdf-fi" id="bk-email" placeholder="Email (optional)"/>' +
       '<select class="rdf-fi" id="bk-svc"><option value="">What do you need? *</option>' + svcs.map(function (o) { return '<option>' + o + '</option>'; }).join("") + '</select>' +
       '<select class="rdf-fi" id="bk-when"><option value="">When suits you?</option>' + whens.map(function (o) { return '<option>' + o + '</option>'; }).join("") + '</select>' +
@@ -238,6 +250,9 @@
     $("bk-send").onclick = function () {
       var name = $("bk-name").value.trim(), phone = $("bk-phone").value.trim(), email = $("bk-email").value.trim(), svc = $("bk-svc").value, when = $("bk-when").value;
       if (!name || !phone || !svc) { $("bk-send").textContent = "Please add name, mobile & service"; return; }
+      var bkP = auMobile(phone);
+      if (!bkP) { $("bk-send").textContent = "Enter a valid AU mobile (0412 345 678)"; setTimeout(function () { $("bk-send").textContent = "Request appointment"; }, 2600); try { $("bk-phone").focus(); } catch (e) {} return; }
+      phone = bkP;
       $("bk-send").textContent = "Sending…"; $("bk-send").disabled = true;
       fetch(API + "/api/book", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: SID, name: name, phone: phone, email: email, service: svc, when: when, patientType: pt }) })
         .then(function (r) { return r.json(); })
@@ -258,7 +273,7 @@
       '<div class="rdf-isub">Just a few details so our team can look after you properly.</div>' +
       '<div class="rdf-isub">Just a few quick details so we can help you properly.</div>' +
       '<input class="rdf-fi" id="in-name" placeholder="Name *" autocomplete="name"/>' +
-      '<input class="rdf-fi" id="in-phone" placeholder="Mobile *" inputmode="tel" autocomplete="tel"/>' +
+      '<input class="rdf-fi" id="in-phone" placeholder="Mobile * (e.g. 0412 345 678)" inputmode="tel" autocomplete="tel"/>' +
       '<input class="rdf-fi" id="in-email" placeholder="Email (optional)" inputmode="email" autocomplete="email"/>' +
       '<textarea class="rdf-fi rdf-ita" id="in-msg" placeholder="Your question *"></textarea>' +
       '<label class="rdf-consent"><input type="checkbox" id="in-consent"/><span>I agree to be contacted by phone or email about my enquiry.</span></label>' +
@@ -273,6 +288,9 @@
     var name = $("in-name").value.trim(), phone = $("in-phone").value.trim(), email = $("in-email").value.trim(), msg = $("in-msg").value.trim(), consent = $("in-consent").checked;
     var err = $("in-err");
     if (!name || !phone || !msg) { err.textContent = "Please add your name, mobile and your question."; return; }
+    var auP = auMobile(phone);
+    if (!auP) { err.textContent = "That mobile doesn\u2019t look right \u2014 please enter an Australian mobile, e.g. 0412 345 678."; try { $("in-phone").focus(); } catch (e) {} return; }
+    phone = auP;
     if (email && !/.+@.+\..+/.test(email)) { err.textContent = "That email doesn't look right."; return; }
     if (!consent) { err.textContent = "Please tick the box so we can reply to you."; return; }
     $("in-send").textContent = "Starting…"; $("in-send").disabled = true;
