@@ -40,13 +40,14 @@
 
   var css = "" +
     "#rdfw,#rdfw *{box-sizing:border-box;font-family:'Inter',-apple-system,Segoe UI,Roboto,sans-serif}" +
+    "#rdf-btn.hidden{opacity:0;visibility:hidden;pointer-events:none}" +
     "#rdf-btn{position:fixed;right:18px;bottom:96px;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;z-index:2147483000;box-shadow:0 10px 30px rgba(10,63,61,.35);background:linear-gradient(135deg," + C.teal + "," + C.tealDeep + ");display:flex;align-items:center;justify-content:center;transition:transform .2s}" +
     "#rdf-btn:hover{transform:scale(1.06)}" +
     "#rdf-pop{position:fixed;right:18px;bottom:168px;max-width:235px;background:#fff;color:" + C.ink + ";border:1px solid " + C.line + ";padding:12px 30px 12px 14px;border-radius:16px 16px 4px 16px;box-shadow:0 12px 34px rgba(10,63,61,.22);z-index:2147482999;cursor:pointer;font-size:14px;line-height:1.45;display:none}" +
     "#rdf-pop.on{display:block;animation:rdfup .3s ease}" +
     "#rdf-pop b{color:" + C.teal + ";font-size:12.5px;display:block;margin-bottom:2px}" +
     "#rdf-pop .x{position:absolute;top:5px;right:9px;font-size:17px;color:" + C.muted + ";line-height:1}" +
-    "#rdf-panel{position:fixed;right:18px;bottom:166px;width:380px;max-width:calc(100vw - 30px);height:600px;max-height:calc(100vh - 202px);background:" + C.bg + ";border:1px solid " + C.line + ";border-radius:22px;overflow:hidden;display:none;flex-direction:column;z-index:2147483000;box-shadow:0 24px 60px rgba(10,63,61,.25)}" +
+    "#rdf-panel{position:fixed;right:18px;bottom:86px;width:380px;max-width:calc(100vw - 28px);height:620px;max-height:calc(100vh - 106px);background:" + C.bg + ";border:1px solid " + C.line + ";border-radius:22px;overflow:hidden;display:none;flex-direction:column;z-index:2147483000;box-shadow:0 24px 60px rgba(10,63,61,.25)}" +
     "#rdf-panel.on{display:flex;animation:rdfup .25s ease}" +
     "@keyframes rdfup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}" +
     "#rdf-head{padding:14px 15px 14px 16px;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg," + C.teal + "," + C.tealDeep + ")}" +
@@ -323,6 +324,7 @@
   // --- wiring ---
   $("rdf-btn").onclick = function () {
     open = !open; $("rdf-panel").className = open ? "on" : "";
+    $("rdf-btn").className = open ? "hidden" : "";
     if (open) {
       var pp = $("rdf-pop"); if (pp) { pp.className = ""; try { localStorage.setItem("rdf_greeted", "1"); } catch (e) {} }
       prewarm();
@@ -338,7 +340,7 @@
       poll(); pollTimer = setInterval(poll, 4000);
     } else { clearInterval(pollTimer); }
   };
-  $("rdf-x").onclick = function () { open = false; $("rdf-panel").className = ""; clearInterval(pollTimer); };
+  $("rdf-x").onclick = function () { open = false; $("rdf-panel").className = ""; $("rdf-btn").className = ""; clearInterval(pollTimer); };
   $("rdf-book").onclick = openBook;
   $("rdf-send").onclick = function () { var v = $("rdf-in").value; $("rdf-in").value = ""; sendMsg(v); };
   $("rdf-in").addEventListener("keydown", function (e) { if (e.key === "Enter") { var v = this.value; this.value = ""; sendMsg(v); } });
