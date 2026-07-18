@@ -332,7 +332,7 @@
     open = !open; $("rdf-panel").className = open ? "on" : "";
     $("rdf-btn").className = open ? "hidden" : "";
     if (open) {
-      var pp = $("rdf-pop"); if (pp) { pp.className = ""; try { localStorage.setItem("rdf_greeted", "1"); } catch (e) {} }
+      var pp = $("rdf-pop"); if (pp) pp.className = "";
       prewarm();
       if (!started) {
         started = true;
@@ -353,14 +353,12 @@
   $("rdf-mic").onclick = toggleMic;
   $("rdf-clip").onclick = function () { $("rdf-file").click(); };
   $("rdf-file").onchange = function (e) { var f = e.target.files[0]; if (!f) return; e.target.value = ""; push("user", "📎 " + f.name); sendMsg("I've attached a file: " + f.name); };
-  // one-time greeting popup by the launcher (shows once per visitor)
+  // greeting popup by the launcher — shows on every page load, new or returning visitor
   (function () {
-    try { if (localStorage.getItem("rdf_greeted")) return; } catch (e) {}
-    if (msgs && msgs.length) return; // returning visitor with history — stay quiet
     var pop = document.createElement("div"); pop.id = "rdf-pop";
     pop.innerHTML = '<span class="x" id="rdf-popx">&times;</span><b>Smily</b>Chat with us \uD83D\uDCAC';
     root.appendChild(pop);
-    function dismiss() { pop.className = ""; try { localStorage.setItem("rdf_greeted", "1"); } catch (e) {} }
+    function dismiss() { pop.className = ""; }   // this page view only — it returns on the next load
     setTimeout(function () { if (!open) pop.className = "on"; }, 2500);
     pop.onclick = function (e) { if (e.target && e.target.id === "rdf-popx") { dismiss(); return; } dismiss(); $("rdf-btn").click(); };
   })();
