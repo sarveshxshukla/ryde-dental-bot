@@ -36,16 +36,21 @@
   }
 
   var C = { teal: "#F17A31", tealDeep: "#C56428", coral: "#F17A31", coralDeep: "#C56428",
+    launch: "#0F766E", launchDeep: "#115E59",   // launcher bubble — deliberately NOT the site orange, so it stands out
     ink: "#38291B", mint: "#FAEFE1", line: "#ECE2D4", muted: "#8A7A68", bg: "#FBF6EF" };
 
   var css = "" +
     "#rdfw,#rdfw *{box-sizing:border-box;font-family:'Inter',-apple-system,Segoe UI,Roboto,sans-serif}" +
     "#rdf-btn.hidden{opacity:0;visibility:hidden;pointer-events:none}" +
-    "#rdf-btn{position:fixed;right:18px;bottom:96px;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;z-index:2147483000;box-shadow:0 10px 30px rgba(10,63,61,.35);background:linear-gradient(135deg," + C.teal + "," + C.tealDeep + ");display:flex;align-items:center;justify-content:center;transition:transform .2s}" +
-    "#rdf-btn:hover{transform:scale(1.06)}" +
+    "#rdf-btn{position:fixed;right:18px;bottom:96px;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;z-index:2147483000;box-shadow:0 10px 26px rgba(15,118,110,.45);background:linear-gradient(135deg," + C.launch + "," + C.launchDeep + ");animation:rdfnudge 6s ease-in-out infinite;display:flex;align-items:center;justify-content:center;transition:transform .2s}" +
+    "#rdf-btn:hover{filter:brightness(1.14)}" +
+    "#rdf-btn::after{content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none;animation:rdfring 2.6s cubic-bezier(.25,.6,.35,1) infinite}" +
+    "@keyframes rdfring{0%{box-shadow:0 0 0 0 rgba(15,118,110,.55)}70%{box-shadow:0 0 0 18px rgba(15,118,110,0)}100%{box-shadow:0 0 0 0 rgba(15,118,110,0)}}" +
+    "@keyframes rdfnudge{0%,86%,100%{transform:translateY(0)}90%{transform:translateY(-8px)}94%{transform:translateY(-3px)}}" +
+    "@media(prefers-reduced-motion:reduce){#rdf-btn,#rdf-btn::after{animation:none}}" +
     "#rdf-pop{position:fixed;right:18px;bottom:168px;max-width:235px;background:#fff;color:" + C.ink + ";border:1px solid " + C.line + ";padding:12px 30px 12px 14px;border-radius:16px 16px 4px 16px;box-shadow:0 12px 34px rgba(10,63,61,.22);z-index:2147482999;cursor:pointer;font-size:14px;line-height:1.45;display:none}" +
     "#rdf-pop.on{display:block;animation:rdfup .3s ease}" +
-    "#rdf-pop b{color:" + C.teal + ";font-size:12.5px;display:block;margin-bottom:2px}" +
+    "#rdf-pop b{color:" + C.launch + ";font-size:12.5px;display:block;margin-bottom:2px}" +
     "#rdf-pop .x{position:absolute;top:5px;right:9px;font-size:17px;color:" + C.muted + ";line-height:1}" +
     "#rdf-panel{position:fixed;right:18px;bottom:86px;width:380px;max-width:calc(100vw - 28px);height:620px;max-height:calc(100vh - 106px);background:" + C.bg + ";border:1px solid " + C.line + ";border-radius:22px;overflow:hidden;display:none;flex-direction:column;z-index:2147483000;box-shadow:0 24px 60px rgba(10,63,61,.25)}" +
     "#rdf-panel.on{display:flex;animation:rdfup .25s ease}" +
@@ -101,7 +106,7 @@
     "@keyframes rdfspin{to{transform:rotate(360deg)}}" +
     /* ---- armor: stop the host theme's button/link CSS bleeding into the widget ---- */
     "#rdfw button,#rdfw a,#rdfw input,#rdfw textarea{font-family:inherit!important;text-transform:none!important;letter-spacing:normal!important;text-shadow:none!important;margin:0!important;min-width:0!important;min-height:0!important;line-height:normal!important}" +
-    "#rdfw #rdf-btn{width:60px!important;height:60px!important;padding:0!important;border:none!important;border-radius:50%!important;background:linear-gradient(135deg," + C.teal + "," + C.tealDeep + ")!important;box-shadow:0 10px 30px rgba(10,63,61,.35)!important}" +
+    "#rdfw #rdf-btn{width:60px!important;height:60px!important;padding:0!important;border:none!important;border-radius:50%!important;background:linear-gradient(135deg," + C.launch + "," + C.launchDeep + ")!important;box-shadow:0 10px 26px rgba(15,118,110,.45)!important}" +
     "#rdfw #rdf-btn svg,#rdfw #rdf-head .av svg{display:block!important;width:20px!important;height:20px!important;opacity:1!important;visibility:visible!important}" +
     "#rdfw svg{vertical-align:middle;max-width:none!important}" +
     "#rdfw .rdf-chip{background:#fff!important;color:" + C.teal + "!important;padding:6px 12px!important;font-size:13px!important;font-weight:500!important;border:1px solid " + C.line + "!important;border-radius:20px!important;width:auto!important;height:auto!important;box-shadow:none!important;text-align:center}" +
@@ -352,7 +357,7 @@
     try { if (localStorage.getItem("rdf_greeted")) return; } catch (e) {}
     if (msgs && msgs.length) return; // returning visitor with history — stay quiet
     var pop = document.createElement("div"); pop.id = "rdf-pop";
-    pop.innerHTML = '<span class="x" id="rdf-popx">&times;</span><b>Smily</b>Hi there! \uD83D\uDC4B I\u2019m Smily \u2014 how can I help you today?';
+    pop.innerHTML = '<span class="x" id="rdf-popx">&times;</span><b>Smily</b>Chat with us \uD83D\uDCAC';
     root.appendChild(pop);
     function dismiss() { pop.className = ""; try { localStorage.setItem("rdf_greeted", "1"); } catch (e) {} }
     setTimeout(function () { if (!open) pop.className = "on"; }, 2500);
