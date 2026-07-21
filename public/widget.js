@@ -91,16 +91,16 @@
     ".rdf-fh{padding:13px 16px;font-weight:700;font-size:14px;background:#fff;border-bottom:1px solid " + C.line + ";display:flex;align-items:center;color:" + C.ink + "}" +
     ".rdf-fh button{margin-left:auto;background:none;border:none;font-size:20px;cursor:pointer;color:" + C.ink + ";opacity:.6}" +
     ".rdf-fb{padding:16px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}" +
-    ".rdf-fi{padding:11px 12px;border:1px solid " + C.line + ";border-radius:10px;outline:none;font-size:16px;background:#fff;color:" + C.ink + "}" +
+    ".rdf-fi{padding:9px 12px;border:1px solid " + C.line + ";border-radius:10px;outline:none;font-size:16px;background:#fff;color:" + C.ink + "}" +
     ".rdf-seg{display:flex;gap:8px}.rdf-seg button{flex:1;padding:10px;border:1px solid " + C.line + ";background:#fff;border-radius:10px;cursor:pointer;font-size:13px;color:" + C.muted + "}.rdf-seg button.on{background:" + C.teal + ";color:#EAFBF8;border-color:" + C.teal + "}" +
-    ".rdf-fbtn{padding:12px;border:none;border-radius:10px;background:" + C.coral + ";color:#fff;font-weight:700;cursor:pointer;font-size:14px}" +
+    ".rdf-fbtn{padding:11px;border:none;border-radius:10px;background:" + C.coral + ";color:#fff;font-weight:700;cursor:pointer;font-size:14px}" +
     ".rdf-fn{font-size:11px;color:" + C.muted + ";text-align:center}" +
     "#rdf-intake{padding:18px 16px;overflow-y:auto;animation:rdfin .2s ease;margin:auto 0;width:100%}" +
     "#rdf-body.intake{padding:0;justify-content:center}" +
-    ".rdf-iw{display:flex;flex-direction:column;gap:11px}" +
+    ".rdf-iw{display:flex;flex-direction:column;gap:8px}" +
     ".rdf-it{font-weight:700;font-size:15.5px;color:" + C.ink + ";line-height:1.4}" +
-    ".rdf-isub{font-size:12px;color:" + C.muted + ";margin:-4px 0 4px;line-height:1.45}" +
-    ".rdf-ita{min-height:62px;resize:vertical;font-family:inherit}" +
+    ".rdf-isub{font-size:12px;color:" + C.muted + ";margin:-3px 0 2px;line-height:1.35}" +
+    ".rdf-ita{min-height:46px;resize:vertical;font-family:inherit}" +
     ".rdf-consent{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:" + C.muted + ";line-height:1.35;cursor:pointer}" +
     ".rdf-consent input{margin-top:1px;width:16px;height:16px;flex-shrink:0;accent-color:" + C.teal + "}" +
     ".rdf-ierr{font-size:12px;color:#C0392B}.rdf-ierr:empty{display:none}" +
@@ -285,9 +285,10 @@
       '<input class="rdf-fi" id="in-email" placeholder="Email (optional)" inputmode="email" autocomplete="email"/>' +
       '<textarea class="rdf-fi rdf-ita" id="in-msg" placeholder="Your question *"></textarea>' +
       '<label class="rdf-consent"><input type="checkbox" id="in-consent"/><span>I agree to be contacted by phone or email about my enquiry.</span></label>' +
+      '<div class="rdf-ierr" id="in-err"></div>' +
       '<button id="in-send" class="rdf-fbtn">Start chat →</button>' +
       '<div class="rdf-fn" style="margin-top:2px">🔒 Your details stay private — used only to help with your enquiry.</div>' +
-      '<div class="rdf-ierr" id="in-err"></div></div>';
+      '</div>';
     body.appendChild(f);
     $("in-send").onclick = submitIntake;
     try { $("in-name").focus(); } catch (e) {}
