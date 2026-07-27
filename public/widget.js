@@ -355,12 +355,21 @@
   $("rdf-mic").onclick = toggleMic;
   $("rdf-clip").onclick = function () { $("rdf-file").click(); };
   $("rdf-file").onchange = function (e) { var f = e.target.files[0]; if (!f) return; e.target.value = ""; push("user", "📎 " + f.name); sendMsg("I've attached a file: " + f.name); };
-  // greeting popup by the launcher — shows on every page load, new or returning visitor
+  // On page load: NEW visitors get the intake form popped open automatically (Birdeye style),
+  // so we capture their details up-front. It's fully closable via the panel's × (they can then browse),
+  // and it re-appears on the next page load. Visitors who've ALREADY given their details are not
+  // nagged with the form — they just get the small "Chat with us" nudge instead.
   (function () {
+    if (!intakeDone) {
+      // auto-open the panel + intake form shortly after load
+      setTimeout(function () { if (!open) $("rdf-btn").click(); }, 800);
+      return;
+    }
+    // returning visitor (already gave details) → gentle nudge only
     var pop = document.createElement("div"); pop.id = "rdf-pop";
     pop.innerHTML = '<span class="x" id="rdf-popx">&times;</span>Chat with us \uD83D\uDCAC';
     root.appendChild(pop);
-    function dismiss() { pop.className = ""; }   // this page view only — it returns on the next load
+    function dismiss() { pop.className = ""; }
     setTimeout(function () { if (!open) pop.className = "on"; }, 2500);
     pop.onclick = function (e) { if (e.target && e.target.id === "rdf-popx") { dismiss(); return; } dismiss(); $("rdf-btn").click(); };
   })();
