@@ -92,16 +92,16 @@
     ".rdf-fh{padding:13px 16px;font-weight:700;font-size:14px;background:#fff;border-bottom:1px solid " + C.line + ";display:flex;align-items:center;color:" + C.ink + "}" +
     ".rdf-fh button{margin-left:auto;background:none;border:none;font-size:20px;cursor:pointer;color:" + C.ink + ";opacity:.6}" +
     ".rdf-fb{padding:16px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}" +
-    ".rdf-fi{padding:13px 15px;border:1.5px solid transparent;border-radius:13px;outline:none;font-size:16px;background:#f4f6f8;color:" + C.ink + ";transition:border-color .14s,background .14s}" +".rdf-fi:focus{border-color:" + C.coral + ";background:#fff}" +".rdf-fi::placeholder{color:#9aa3ad}" +
+    ".rdf-fi{padding:9px 2px;border:none;border-bottom:1.5px solid " + C.line + ";border-radius:0;outline:none;font-size:16px;background:transparent;color:" + C.ink + ";transition:border-color .16s}" +".rdf-fi:focus{border-bottom-color:" + C.coral + "}" +".rdf-fi::placeholder{color:#9aa3ad}" +
     ".rdf-seg{display:flex;gap:8px}.rdf-seg button{flex:1;padding:10px;border:1px solid " + C.line + ";background:#fff;border-radius:10px;cursor:pointer;font-size:13px;color:" + C.muted + "}.rdf-seg button.on{background:" + C.teal + ";color:#EAFBF8;border-color:" + C.teal + "}" +
-    ".rdf-fbtn{padding:15px;border:none;border-radius:14px;background:" + C.coral + ";color:#fff;font-weight:800;cursor:pointer;font-size:15px;box-shadow:0 6px 16px rgba(238,122,50,.32);transition:transform .12s,background .12s;margin-top:2px}" +".rdf-fbtn:hover{background:" + C.coralDeep + "}" +".rdf-fbtn:active{transform:translateY(1px)}" +
+    ".rdf-fbtn{padding:14px;border:none;border-radius:12px;background:" + C.coral + ";color:#fff;font-weight:700;cursor:pointer;font-size:15px;letter-spacing:.01em;transition:background .14s;margin-top:8px}" +".rdf-fbtn:hover{background:" + C.coralDeep + "}" +".rdf-fbtn:active{opacity:.92}" +
     ".rdf-fn{font-size:11px;color:" + C.muted + ";text-align:center}" +
-    "#rdf-intake{padding:18px 16px;overflow-y:auto;animation:rdfin .2s ease;margin:auto 0;width:100%}" +
+    "#rdf-intake{padding:0;overflow-y:auto;animation:rdfin .2s ease;width:100%}" +
     "#rdf-body.intake{padding:0;justify-content:center}" +
-    ".rdf-iw{display:flex;flex-direction:column;gap:12px;padding:22px 20px;overflow-y:auto;height:100%}" +
-    ".rdf-it{font-weight:800;font-size:19px;color:" + C.ink + ";line-height:1.3;letter-spacing:-.01em}" +
-    ".rdf-isub{font-size:13.5px;color:" + C.muted + ";margin:-6px 0 4px;line-height:1.45}" +
-    ".rdf-ita{min-height:64px;resize:vertical;font-family:inherit}" +
+    ".rdf-iw{position:relative;display:flex;flex-direction:column;gap:18px;padding:18px 20px 20px}" +
+    ".rdf-iclose{position:absolute;top:14px;right:16px;width:34px;height:34px;border-radius:50%;background:#f4f6f8;border:none;color:#5b6470;font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s;z-index:2}" +".rdf-iclose:hover{background:#e9edf1;color:#1f2937}" +".rdf-it{font-weight:800;font-size:19px;color:" + C.ink + ";line-height:1.3;letter-spacing:-.01em;padding-right:38px}" +
+    ".rdf-isub{font-size:13.5px;color:" + C.muted + ";margin:-8px 0 6px;line-height:1.45}" +
+    ".rdf-ita{min-height:52px;resize:none;font-family:inherit;line-height:1.4}" +
     ".rdf-ierr{font-size:12px;color:#C0392B}.rdf-ierr:empty{display:none}" +
     "@keyframes rdfspin{to{transform:rotate(360deg)}}" +
     /* ---- armor: stop the host theme's button/link CSS bleeding into the widget ---- */
@@ -117,7 +117,7 @@
     "#rdfw #rdf-book,#rdfw #rdf-x{width:40px!important;height:40px!important;padding:0!important;border-radius:50%!important;background:rgba(255,255,255,.16)!important;border:none!important;color:#fff!important;box-shadow:none!important;display:flex!important;align-items:center;justify-content:center;flex-shrink:0}" +
     "#rdfw #rdf-x{font-size:24px!important;margin-left:9px!important}" +
     "#rdfw #rdf-book svg{width:21px!important;height:21px!important}" +
-    "#rdfw .rdf-fbtn{background:" + C.coral + "!important;color:#fff!important;padding:15px!important;border:none!important;border-radius:14px!important;width:100%!important;box-shadow:0 6px 16px rgba(238,122,50,.32)!important;font-weight:800!important}" +
+    "#rdfw .rdf-fbtn{background:" + C.coral + "!important;color:#fff!important;padding:14px!important;border:none!important;border-radius:12px!important;width:100%!important;box-shadow:none!important;font-weight:700!important}" +
     "#rdfw .rdf-seg button{background:#fff!important;color:" + C.muted + "!important;padding:10px!important;border:1px solid " + C.line + "!important;border-radius:10px!important;width:auto!important;box-shadow:none!important}" +
     "#rdfw .rdf-seg button.on{background:" + C.teal + "!important;color:#EAFBF8!important;border-color:" + C.teal + "!important}";
 
@@ -277,6 +277,7 @@
     body.className = "intake";
     var f = el("div"); f.id = "rdf-intake";
     f.innerHTML = '<div class="rdf-iw">' +
+      '<button id="in-close" aria-label="Close" class="rdf-iclose">&times;</button>' +
       '<div class="rdf-it">Please share your details</div>' +
       '<div class="rdf-isub">\uD83D\uDD12 Your details are kept private and only used to help with your enquiry.</div>' +
       '<input class="rdf-fi" id="in-name" placeholder="Name *" autocomplete="name"/>' +
@@ -288,6 +289,7 @@
       '</div>';
     body.appendChild(f);
     $("in-send").onclick = submitIntake;
+    var icx = $("in-close"); if (icx) icx.onclick = function () { var fm = $("rdf-intake"); if (fm) fm.remove(); open = false; $("rdf-panel").className = ""; $("rdf-btn").className = ""; clearInterval(pollTimer); };
     try { $("in-name").focus(); } catch (e) {}
   }
   function submitIntake() {
