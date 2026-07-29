@@ -335,7 +335,10 @@
     if (open) {
       var pp = $("rdf-pop"); if (pp) pp.className = "";
       prewarm();
-      if (!started) {
+      // If they haven't given details yet and there's no chat going, always show the intake form
+      // (re-applies the fit sizing so there's no empty space, even on reopen).
+      if (!intakeDone && !msgs.length) { started = true; showIntake(); }
+      else if (!started) {
         started = true;
         if (msgs.length) sync();                                  // returning visitor with chat history
         else if (!intakeDone) showIntake();                       // first time → capture details before chatting
