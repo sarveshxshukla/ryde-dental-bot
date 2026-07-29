@@ -114,8 +114,8 @@
     "#rdfw #rdf-send{width:42px!important;height:42px!important;padding:0!important;border:none!important;border-radius:50%!important;background:" + C.teal + "!important;box-shadow:none!important}" +
     "#rdfw .rdf-ic{width:30px!important;height:30px!important;padding:0!important;border:none!important;border-radius:50%!important;background:none!important;box-shadow:none!important}" +
     "#rdfw .rdf-ic.on{background:#FBE1D1!important}" +
-    "#rdfw #rdf-book,#rdfw #rdf-x{width:40px!important;height:40px!important;padding:0!important;border-radius:50%!important;background:rgba(255,255,255,.16)!important;border:none!important;color:#fff!important;box-shadow:none!important;display:flex!important;align-items:center;justify-content:center;flex-shrink:0}" +
-    "#rdfw #rdf-x{font-size:24px!important;margin-left:9px!important}" +
+    "#rdfw #rdf-book{width:38px!important;height:38px!important;padding:0!important;border-radius:50%!important;background:#f4f6f8!important;border:none!important;color:" + C.teal + "!important;box-shadow:none!important;display:flex!important;align-items:center;justify-content:center;flex-shrink:0}" +"#rdfw #rdf-x{width:38px!important;height:38px!important;padding:0!important;border-radius:50%!important;background:#f4f6f8!important;border:none!important;color:#5b6470!important;box-shadow:none!important;display:flex!important;align-items:center;justify-content:center;flex-shrink:0}" +
+    "#rdfw #rdf-x{font-size:23px!important;margin-left:8px!important;color:#5b6470!important}" +
     "#rdfw #rdf-book svg{width:21px!important;height:21px!important}" +
     "#rdfw .rdf-fbtn{background:" + C.coral + "!important;color:#fff!important;padding:14px!important;border:none!important;border-radius:12px!important;width:100%!important;box-shadow:none!important;font-weight:700!important}" +
     "#rdfw .rdf-seg button{background:#fff!important;color:" + C.muted + "!important;padding:10px!important;border:1px solid " + C.line + "!important;border-radius:10px!important;width:auto!important;box-shadow:none!important}" +
