@@ -56,13 +56,13 @@
     "#rdf-panel{position:fixed;right:18px;bottom:86px;width:380px;max-width:calc(100vw - 28px);height:620px;max-height:calc(100vh - 106px);background:#fff;border:1px solid #eef0f2;border-radius:20px;overflow:hidden;display:none;flex-direction:column;z-index:2147483000;box-shadow:0 24px 60px rgba(10,63,61,.25)}" +
     "#rdf-panel.on{display:flex;animation:rdfup .25s ease}" +
     "@keyframes rdfup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}" +
-    "#rdf-head{padding:16px 16px 16px 18px;display:flex;align-items:center;gap:12px;background:#fff;border-bottom:1px solid #eef0f2}" +
+    "#rdf-head{position:relative;z-index:6;padding:16px 16px 16px 18px;display:flex;align-items:center;gap:12px;background:#fff;border-bottom:1px solid #eef0f2}" +
     "#rdf-head .av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg," + C.teal + "," + C.tealDeep + ");display:flex;align-items:center;justify-content:center;flex-shrink:0}" +
     "#rdf-head .nm{color:#1f2937;font-weight:700;font-size:15px;line-height:1.2}" +
     "#rdf-head .st{color:#8a94a0;font-size:12px;display:flex;align-items:center;gap:6px;margin-top:1px}" +
     "#rdf-head.human{background:linear-gradient(135deg," + C.coralDeep + ",#954B1E)}#rdf-head.human .st{color:#FFE0C8}" +
     "#rdf-book{background:#f4f6f8;border:none;color:" + C.teal + ";cursor:pointer;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0}" +
-    "#rdf-x{margin-left:8px;background:#f4f6f8;border:none;color:#5b6470;cursor:pointer;font-size:22px;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .12s,color .12s}#rdf-x:hover{background:#e9edf1;color:#1f2937}" +
+    "#rdf-x{margin-left:8px;background:#f4f6f8;border:none;color:#5b6470;cursor:pointer;font-size:23px;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .12s,color .12s}#rdf-x:hover{background:#e9edf1;color:#1f2937}" +
     "#rdf-body{flex:1;overflow-y:auto;padding:20px 18px;display:flex;flex-direction:column;gap:16px;background:#fff;-webkit-overflow-scrolling:touch}" +
     ".rdf-row{display:flex;gap:8px;align-items:flex-end;animation:rdfin .25s ease}" +
     "@keyframes rdfin{from{opacity:0;transform:translateY(6px)}to{opacity:1}}" +
@@ -99,7 +99,7 @@
     "#rdf-intake{padding:0;overflow-y:auto;animation:rdfin .2s ease;width:100%}" +
     "#rdf-body.intake{padding:0;justify-content:center}" +
     ".rdf-iw{position:relative;display:flex;flex-direction:column;gap:18px;padding:18px 20px 20px}" +
-    ".rdf-iclose{position:absolute;top:14px;right:16px;width:34px;height:34px;border-radius:50%;background:#f4f6f8;border:none;color:#5b6470;font-size:22px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s;z-index:2}" +".rdf-iclose:hover{background:#e9edf1;color:#1f2937}" +".rdf-it{font-weight:800;font-size:19px;color:" + C.ink + ";line-height:1.3;letter-spacing:-.01em;padding-right:38px}" +
+    ".rdf-it{font-weight:800;font-size:19px;color:" + C.ink + ";line-height:1.3;letter-spacing:-.01em}" +
     ".rdf-isub{font-size:13.5px;color:" + C.muted + ";margin:-8px 0 6px;line-height:1.45}" +
     ".rdf-ita{min-height:52px;resize:none;font-family:inherit;line-height:1.4}" +
     ".rdf-ierr{font-size:12px;color:#C0392B}.rdf-ierr:empty{display:none}" +
@@ -277,7 +277,6 @@
     body.className = "intake";
     var f = el("div"); f.id = "rdf-intake";
     f.innerHTML = '<div class="rdf-iw">' +
-      '<button id="in-close" aria-label="Close" class="rdf-iclose">&times;</button>' +
       '<div class="rdf-it">Please share your details</div>' +
       '<div class="rdf-isub">\uD83D\uDD12 Your details are kept private and only used to help with your enquiry.</div>' +
       '<input class="rdf-fi" id="in-name" placeholder="Name *" autocomplete="name"/>' +
@@ -289,7 +288,6 @@
       '</div>';
     body.appendChild(f);
     $("in-send").onclick = submitIntake;
-    var icx = $("in-close"); if (icx) icx.onclick = function () { var fm = $("rdf-intake"); if (fm) fm.remove(); open = false; $("rdf-panel").className = ""; $("rdf-btn").className = ""; clearInterval(pollTimer); };
     try { $("in-name").focus(); } catch (e) {}
   }
   function submitIntake() {
