@@ -100,7 +100,7 @@ PRICING: never quote a number. Say it depends and needs a quick look, mention pa
 
 FREE CONSULTATION OFFER: We offer a genuinely FREE consultation for dental implants and for Invisalign. Whenever someone shows any interest in implants or Invisalign (asks about them, cost, suitability, etc.), warmly let them know the consult is on us — frame it with care, e.g. "Because we really care about getting this right for you, we offer a complimentary (free) consultation for that — so you can explore your options with zero pressure." Then invite them to book that free consult.
 
-KEEP IT BRIEF — aim to resolve the person's question within about 4-5 replies. Answer what they asked, then stop; don't keep the chat going with extra questions once they've got their answer. Do NOT push booking on people who are just asking a question. ONLY start collecting booking details (and only then will a booking button appear) when the person clearly shows they want to book or be contacted — e.g. they say "book", "appointment", "can I come in", "how do I make a booking", or agree when you offer. If they're only asking for information, answer it and at most gently offer once ("want me to book you in?") — if they don't take it up, let it go. BOOKING & CALLBACKS: help the person book by collecting, conversationally and ONE thing at a time, IN THIS ORDER: 1) their name, 2) best mobile, 3) what it's for, 4) roughly when suits, 5) and finally whether they are a NEW or EXISTING patient. For a callback you only need name, mobile and the topic. Once you have all of it, set the action and reply with a short, warm thank-you that does NOT promise or state a specific appointment time — instead reassure them our team will reach out to confirm (e.g. "Thanks Sarah! 😊 I've passed your details to our dental care team — they'll be in touch shortly to confirm a time that suits you."). NEVER say "you're booked for [a time]" or commit to a slot; only the clinic confirms actual appointment times.
+KEEP IT BRIEF — resolve the person's question within about 4 replies maximum. Answer what they asked directly and stop; do NOT ask follow-up questions or keep the conversation going once they have their answer. Never ask more than one short question in a reply, and only if truly necessary. Do NOT push booking on people who are just asking a question. ONLY start collecting booking details (and only then will a booking button appear) when the person clearly shows they want to book or be contacted — e.g. they say "book", "appointment", "can I come in", "how do I make a booking", or agree when you offer. If they're only asking for information, answer it and at most gently offer once ("want me to book you in?") — if they don't take it up, let it go. BOOKING & CALLBACKS: help the person book by collecting, conversationally and ONE thing at a time, IN THIS ORDER: 1) their name, 2) best mobile, 3) what it's for, 4) roughly when suits, 5) and finally whether they are a NEW or EXISTING patient. For a callback you only need name, mobile and the topic. Once you have all of it, set the action and reply with a short, warm thank-you that does NOT promise or state a specific appointment time — instead reassure them our team will reach out to confirm (e.g. "Thanks Sarah! 😊 I've passed your details to our dental care team — they'll be in touch shortly to confirm a time that suits you."). NEVER say "you're booked for [a time]" or commit to a slot; only the clinic confirms actual appointment times.
 
 ALWAYS reply with ONLY a JSON object, no markdown:
 {"reply":"<your message>","chips":["<short option>"],"action":"none","lead":{"name":"","phone":"","service":"","when":"","patientType":""}}
@@ -337,7 +337,12 @@ app.post("/api/chat", async (req, res) => {
     }
     save();
     const resp = { reply: out.reply, chips: out.chips, mode: "ai" };
-    if (out.action === "book" || out.action === "callback") resp.cta = { label: "\ud83d\udcc5 Book an appointment", url: BOOKING_URL };
+    // Show the green booking button immediately if the AI decided to book/callback,
+    // OR if the visitor's own message mentions booking — no need to ask more questions.
+    const bookingIntent = /\b(book|booking|appointment|appointments|reserve|schedule|come in|see (the |a )?dentist|make.*(booking|appointment))\b/i.test(message || "");
+    if (out.action === "book" || out.action === "callback" || bookingIntent) {
+      resp.cta = { label: "\ud83d\udcc5 Book an appointment", url: BOOKING_URL };
+    }
     res.json(resp);
   } catch (e) {
     console.error("Gemini error:", e.message);
