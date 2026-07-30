@@ -125,8 +125,8 @@
   .treat-btn .t-ic{width:38px;height:38px;border-radius:10px;background:var(--cream);display:flex;align-items:center;justify-content:center;flex:none;color:var(--teal);transition:background .15s,color .15s;}
   .treat-btn .t-ic svg{width:21px;height:21px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;}
   .treat-btn .t-txt{flex:1;}
-  .treat-btn .t-name{font-weight:600;font-size:15.5px;color:var(--teal);line-height:1.2;}
-  .treat-btn .t-desc{font-size:13px;color:var(--ink-muted);}
+  .treat-btn .t-name{display:block;font-weight:600;font-size:15.5px;color:var(--teal);line-height:1.25;margin-bottom:3px;}
+  .treat-btn .t-desc{display:block;font-size:13px;color:var(--ink-muted);line-height:1.2;}
   .treat-btn .t-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;transition:all .15s;}
   .treat-btn .t-check svg{width:13px;height:13px;stroke:#fff;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .15s;}
   .treat-btn[aria-checked="true"]{border-color:var(--orange);background:#FFF7F1;box-shadow:0 4px 14px rgba(238,122,50,.14);}
@@ -317,9 +317,6 @@
       <p class="hero-sub">Book a free 15-minute phone call about dental implants, clear aligners, or laser gum treatment. No pressure, no obligation — we&rsquo;ll ring you at a time that suits.</p>
 
       <ul class="ticks">
-        <li><span class="tick-ic"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span> A calm, comfort-first team you can relax with</li>
-        <li><span class="tick-ic"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span> Right inside Top Ryde City Shopping Centre</li>
-        <li><span class="tick-ic"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span> Saturday appointments and after-hours Thursdays</li>
         <li><span class="tick-ic"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span> Clear, honest advice — you decide what is right for you</li>
       </ul>
     </div>
@@ -406,7 +403,7 @@
           <li><span class="ci cmp-badge" style="width:26px;height:26px;background:var(--green-soft);"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 13l4 4L19 7"/></svg></span> Time to listen, and answers in plain language</li>
           <li><span class="ci cmp-badge" style="width:26px;height:26px;background:var(--green-soft);"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 13l4 4L19 7"/></svg></span> A relaxed pace — we go at your comfort level</li>
           <li><span class="ci cmp-badge" style="width:26px;height:26px;background:var(--green-soft);"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 13l4 4L19 7"/></svg></span> Clear pricing and options, explained up front</li>
-          <li><span class="ci cmp-badge" style="width:26px;height:26px;background:var(--green-soft);"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 13l4 4L19 7"/></svg></span> Flexible times, including Saturdays and Thursday evenings</li>
+          <li><span class="ci cmp-badge" style="width:26px;height:26px;background:var(--green-soft);"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 13l4 4L19 7"/></svg></span> Book your time online in under a minute, no phone tag</li>
         </ul>
       </div>
 
@@ -417,7 +414,7 @@
           <li><span class="ci cmp-badge" style="width:26px;height:26px;"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M6 12h12"/></svg></span> Feeling hurried in and out of the chair</li>
           <li><span class="ci cmp-badge" style="width:26px;height:26px;"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M6 12h12"/></svg></span> Jargon that leaves you unsure what is happening</li>
           <li><span class="ci cmp-badge" style="width:26px;height:26px;"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M6 12h12"/></svg></span> Surprise costs you did not agree to</li>
-          <li><span class="ci cmp-badge" style="width:26px;height:26px;"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M6 12h12"/></svg></span> Weekday-only hours that never quite fit</li>
+          <li><span class="ci cmp-badge" style="width:26px;height:26px;"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M6 12h12"/></svg></span> Phone tag back and forth just to find a time</li>
         </ul>
       </div>
 
@@ -522,7 +519,7 @@
       </details>
       <details class="faq-item">
         <summary>What times can I book? <svg class="ic fq-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
-        <div class="fq-body">Monday to Friday, 9am to 5pm, with Saturday appointments available and after-hours on Thursdays. The calendar above only shows times we are genuinely free.</div>
+        <div class="fq-body">Monday to Friday, 9am to 5pm. The calendar above only shows times we are genuinely free.</div>
       </details>
       <details class="faq-item">
         <summary>Do I have to decide anything on the call? <svg class="ic fq-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
@@ -573,7 +570,7 @@
       <div>
         <h4>Hours</h4>
         <div class="f-row"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-          <span>Mon – Fri: 9am – 5pm<br>Saturday: appointments available<br>Thursday: after-hours available</span></div>
+          <span>Mon – Fri: 9am – 5pm<br>Sat &amp; Sun: Closed</span></div>
       </div>
     </div>
     <div class="foot-bottom">
