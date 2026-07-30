@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ryde Dental Family — Book a free 15-minute consult</title>
+<meta name="description" content="Gentle dental care in Top Ryde. Book a free 15-minute phone consultation about dental implants, clear aligners, or laser gum treatment." />
+
+<!-- ============================================================
+     RYDE DENTAL FAMILY — BOOKING LANDING PAGE
+     Single self-contained file. Serve from public/booking.html
+     ============================================================ -->
+
+<!--  >>> STEP 1 CONFIG — the ONLY thing you edit in this file <<<
+      After the clinic creates its free Cal.com account, replace
+      the word  your-clinic-username  below with their real Cal.com
+      username (the word that appears after cal.com/ in their link).
+      Do NOT touch anything else. -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root{
+    --orange:#EE7A32;
+    --orange-dark:#D9662080;
+    --orange-deep:#CB5E1C;
+    --teal:#123C4A;
+    --teal-soft:#2E5A68;
+    --cream:#FBF7F2;
+    --green:#1FA463;
+    --green-soft:#E7F4EC;
+    --white:#FFFFFF;
+    --line:#E7DFD4;
+    --ink-muted:#5A6B70;
+    --shadow-sm:0 1px 2px rgba(18,60,74,.06), 0 4px 14px rgba(18,60,74,.06);
+    --shadow-md:0 10px 40px rgba(18,60,74,.10);
+    --radius:16px;
+    --radius-lg:22px;
+    --maxw:1120px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--teal);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:17px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Fraunces','Georgia',serif;font-weight:600;line-height:1.12;letter-spacing:-.01em;margin:0;color:var(--teal);}
+  p{margin:0;}
+  a{color:inherit;}
+  img,svg{display:block;}
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px;}
+
+  /* ---- reusable icon ---- */
+  .ic{width:22px;height:22px;stroke:currentColor;stroke-width:1.75;fill:none;stroke-linecap:round;stroke-linejoin:round;flex:none;}
+  .ic-sm{width:18px;height:18px;}
+
+  /* ---- buttons ---- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    font-family:'Inter',sans-serif;font-weight:600;font-size:16px;
+    padding:15px 26px;border-radius:999px;border:none;cursor:pointer;
+    text-decoration:none;transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+    line-height:1;
+  }
+  .btn-primary{background:var(--orange);color:#fff;box-shadow:0 6px 18px rgba(238,122,50,.28);}
+  .btn-primary:hover{background:var(--orange-deep);transform:translateY(-1px);}
+  .btn-ghost{background:transparent;color:var(--teal);border:1.5px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--orange);color:var(--orange-deep);}
+  .btn-block{width:100%;}
+
+  :focus-visible{outline:3px solid rgba(238,122,50,.55);outline-offset:2px;border-radius:6px;}
+
+  /* ============ LOGO BAR (non-sticky) ============ */
+  .logobar{background:var(--cream);border-bottom:1px solid var(--line);}
+  .logobar .wrap{display:flex;align-items:center;justify-content:space-between;padding-top:16px;padding-bottom:16px;gap:14px;}
+  .brand{display:flex;align-items:center;gap:12px;text-decoration:none;}
+  .brand-mark{width:44px;height:44px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 4px 12px rgba(238,122,50,.3);}
+  .brand-mark svg{width:24px;height:24px;stroke:#fff;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .brand-name{font-family:'Fraunces',serif;font-weight:600;font-size:20px;color:var(--teal);line-height:1.05;}
+  .brand-tag{font-size:12.5px;color:var(--ink-muted);font-family:'Inter',sans-serif;font-weight:500;letter-spacing:.01em;}
+  .phone-link{display:inline-flex;align-items:center;gap:9px;text-decoration:none;color:var(--teal);font-weight:600;font-size:16px;white-space:nowrap;}
+  .phone-link .ic{color:var(--orange);}
+  .phone-link span.lbl{font-size:12px;color:var(--ink-muted);font-weight:500;display:block;line-height:1;margin-bottom:2px;}
+
+  /* ============ HERO ============ */
+  .hero{padding:56px 0 40px;}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:start;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--green-soft);color:#137a48;font-weight:600;font-size:13.5px;padding:7px 14px;border-radius:999px;margin-bottom:20px;}
+  .eyebrow .ic{color:var(--green);}
+  .hero h1{font-size:clamp(34px,4.6vw,52px);margin-bottom:18px;}
+  .hero h1 .swash{position:relative;white-space:nowrap;color:var(--orange-deep);}
+  .hero h1 .swash svg{position:absolute;left:0;right:0;bottom:-8px;width:100%;height:12px;stroke:var(--orange);stroke-width:3;fill:none;opacity:.85;}
+  .hero-sub{font-size:18.5px;color:var(--teal-soft);max-width:33ch;margin-bottom:26px;}
+  .ticks{list-style:none;padding:0;margin:0 0 4px;display:grid;gap:13px;}
+  .ticks li{display:flex;align-items:flex-start;gap:12px;font-size:16.5px;color:var(--teal);}
+  .tick-ic{width:26px;height:26px;border-radius:50%;background:var(--green-soft);display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px;}
+  .tick-ic svg{width:15px;height:15px;stroke:var(--green);stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* ---- booking card ---- */
+  .book-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow:hidden;}
+  .book-head{padding:22px 24px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff, #fffdfa);}
+  .book-head h2{font-size:22px;margin-bottom:5px;}
+  .book-head p{font-size:14.5px;color:var(--ink-muted);}
+  .book-body{padding:20px 22px 24px;}
+  .step-label{font-size:12.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--orange-deep);margin-bottom:11px;display:flex;align-items:center;gap:7px;}
+  .step-num{width:20px;height:20px;border-radius:50%;background:var(--orange);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:'Inter';}
+
+  .treatments{display:grid;gap:9px;margin-bottom:20px;}
+  .treat-btn{
+    display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+    background:#fff;border:1.5px solid var(--line);border-radius:13px;
+    padding:13px 15px;cursor:pointer;font-family:'Inter',sans-serif;
+    transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .treat-btn:hover{border-color:var(--orange);}
+  .treat-btn .t-ic{width:38px;height:38px;border-radius:10px;background:var(--cream);display:flex;align-items:center;justify-content:center;flex:none;color:var(--teal);transition:background .15s,color .15s;}
+  .treat-btn .t-ic svg{width:21px;height:21px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .treat-btn .t-txt{flex:1;}
+  .treat-btn .t-name{font-weight:600;font-size:15.5px;color:var(--teal);line-height:1.2;}
+  .treat-btn .t-desc{font-size:13px;color:var(--ink-muted);}
+  .treat-btn .t-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+  .treat-btn .t-check svg{width:13px;height:13px;stroke:#fff;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:0;transition:opacity .15s;}
+  .treat-btn[aria-checked="true"]{border-color:var(--orange);background:#FFF7F1;box-shadow:0 4px 14px rgba(238,122,50,.14);}
+  .treat-btn[aria-checked="true"] .t-ic{background:var(--orange);color:#fff;}
+  .treat-btn[aria-checked="true"] .t-check{background:var(--green);border-color:var(--green);}
+  .treat-btn[aria-checked="true"] .t-check svg{opacity:1;}
+
+  .cal-wrap{border-top:1px dashed var(--line);padding-top:18px;}
+  .cal-wrap .step-label{margin-bottom:13px;}
+  #cal-embed{min-height:520px;border-radius:14px;overflow:hidden;}
+  .cal-placeholder{
+    min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;gap:14px;padding:34px 24px;background:var(--cream);border:1.5px dashed var(--line);border-radius:14px;color:var(--ink-muted);
+  }
+  .cal-placeholder .p-ic{width:54px;height:54px;border-radius:50%;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--orange);}
+  .cal-placeholder .p-ic svg{width:26px;height:26px;stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .cal-placeholder strong{color:var(--teal);font-size:16px;font-family:'Inter';font-weight:600;}
+  .cal-note{font-size:12.5px;color:var(--ink-muted);text-align:center;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:7px;}
+  .cal-note .ic{color:var(--green);}
+
+  /* ---- stepped booking ---- */
+  .progress{display:flex;align-items:center;gap:12px;margin-top:14px;}
+  .p-track{flex:1;height:6px;border-radius:999px;background:var(--line);overflow:hidden;}
+  .p-track i{display:block;height:100%;width:50%;background:var(--orange);border-radius:999px;transition:width .3s ease;}
+  .p-count{font-size:12.5px;font-weight:600;color:var(--ink-muted);white-space:nowrap;}
+  .p-count #pNow{color:var(--orange-deep);}
+  .bstep[hidden]{display:none;}
+  .bstep .btn-block{margin-top:4px;}
+  .backlink{display:inline-flex;align-items:center;gap:6px;background:none;border:none;padding:4px 0;margin-bottom:14px;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;font-size:14px;color:var(--teal-soft);}
+  .backlink:hover{color:var(--orange-deep);}
+  .chosen-chip{display:inline-flex;align-items:center;gap:7px;background:var(--green-soft);color:#137a48;font-weight:600;font-size:14px;padding:7px 13px;border-radius:999px;margin-bottom:18px;}
+  .chosen-chip .ic{color:var(--green);}
+
+  /* ============ generic section ============ */
+  .section{padding:66px 0;}
+  .section-alt{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .sec-head{text-align:center;max-width:640px;margin:0 auto 42px;}
+  .sec-head .kicker{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--orange-deep);margin-bottom:12px;}
+  .sec-head h2{font-size:clamp(27px,3.4vw,38px);margin-bottom:14px;}
+  .sec-head p{color:var(--teal-soft);font-size:17.5px;}
+
+  /* ---- comparison ---- */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:920px;margin:0 auto;}
+  .cmp{border-radius:var(--radius);padding:28px 26px;}
+  .cmp-us{background:var(--white);border:2px solid var(--orange);box-shadow:var(--shadow-sm);}
+  .cmp-them{background:#F4EFE8;border:1px solid var(--line);}
+  .cmp h3{font-size:20px;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
+  .cmp .cmp-tag{font-size:13px;color:var(--ink-muted);margin-bottom:20px;font-weight:500;}
+  .cmp ul{list-style:none;padding:0;margin:0;display:grid;gap:15px;}
+  .cmp li{display:flex;align-items:flex-start;gap:12px;font-size:16px;line-height:1.45;}
+  .cmp-us li .ci{color:var(--green);}
+  .cmp-them li{color:var(--ink-muted);}
+  .cmp-them li .ci{color:#B7ADA0;}
+  .cmp li .ci{flex:none;margin-top:2px;}
+  .cmp-badge{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .cmp-us .cmp-badge{background:var(--orange);color:#fff;}
+  .cmp-them .cmp-badge{background:#E2DACE;color:#8A8271;}
+  .cmp-badge svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.9;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* ---- consultation list ---- */
+  .provides{max-width:860px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .prov-item{display:flex;gap:16px;align-items:flex-start;background:var(--cream);border:1px solid var(--line);border-radius:14px;padding:20px 20px;}
+  .section-alt .prov-item{background:var(--cream);}
+  .prov-item .pi-ic{width:44px;height:44px;border-radius:11px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none;color:var(--orange);}
+  .prov-item .pi-ic svg{width:23px;height:23px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .prov-item h3{font-size:17px;font-family:'Inter';font-weight:600;margin-bottom:4px;}
+  .prov-item p{font-size:14.5px;color:var(--ink-muted);}
+
+  /* ---- offer band ---- */
+  .offer{background:var(--teal);color:#fff;border-radius:var(--radius-lg);padding:44px 40px;display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap;box-shadow:var(--shadow-md);}
+  .offer .o-left{max-width:560px;}
+  .offer .o-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);color:#fff;font-weight:600;font-size:13px;padding:6px 13px;border-radius:999px;margin-bottom:15px;}
+  .offer .o-badge .ic{color:#FFD9B8;}
+  .offer h2{color:#fff;font-size:clamp(24px,3vw,32px);margin-bottom:10px;}
+  .offer p{color:rgba(255,255,255,.82);font-size:16.5px;}
+  .offer .btn-primary{box-shadow:0 8px 22px rgba(0,0,0,.25);}
+
+  /* ---- treatment cards ---- */
+  .tcards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  .tcard{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:28px 26px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;transition:transform .18s ease, box-shadow .18s ease;}
+  .tcard:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
+  .tcard .tc-ic{width:54px;height:54px;border-radius:14px;background:#FFF3EB;display:flex;align-items:center;justify-content:center;color:var(--orange-deep);margin-bottom:18px;}
+  .tcard .tc-ic svg{width:28px;height:28px;stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+  .tcard h3{font-size:20px;margin-bottom:9px;}
+  .tcard p{color:var(--ink-muted);font-size:15.5px;flex:1;margin-bottom:20px;}
+  .tcard .tc-link{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--orange-deep);background:none;border:none;padding:0;cursor:pointer;font-size:15.5px;font-family:'Inter';}
+  .tcard .tc-link:hover{gap:11px;}
+  .tcard .tc-link .ic{transition:transform .15s;}
+
+  /* ---- FAQ ---- */
+  .faq{max-width:760px;margin:0 auto;display:grid;gap:12px;}
+  details.faq-item{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+  details.faq-item summary{list-style:none;cursor:pointer;padding:19px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;font-weight:600;font-size:16.5px;color:var(--teal);}
+  details.faq-item summary::-webkit-details-marker{display:none;}
+  details.faq-item .fq-chev{color:var(--orange);transition:transform .2s ease;flex:none;}
+  details.faq-item[open] .fq-chev{transform:rotate(180deg);}
+  details.faq-item .fq-body{padding:0 22px 20px;color:var(--teal-soft);font-size:16px;line-height:1.6;}
+
+  /* ---- final CTA ---- */
+  .final{text-align:center;}
+  .final h2{font-size:clamp(28px,3.6vw,40px);margin-bottom:16px;}
+  .final p{color:var(--teal-soft);font-size:18px;max-width:520px;margin:0 auto 28px;}
+
+  /* ---- footer ---- */
+  footer{background:var(--teal);color:rgba(255,255,255,.8);padding:52px 0 34px;}
+  .foot-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:36px;}
+  footer .brand-name{color:#fff;}
+  footer .foot-tag{color:rgba(255,255,255,.6);font-size:13.5px;margin-top:2px;}
+  footer h4{color:#fff;font-family:'Inter';font-size:14px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin:0 0 15px;}
+  footer .f-row{display:flex;gap:11px;align-items:flex-start;margin-bottom:12px;font-size:15px;line-height:1.5;}
+  footer .f-row .ic{color:var(--orange);margin-top:2px;}
+  footer a.f-row{text-decoration:none;color:rgba(255,255,255,.85);}
+  footer a.f-row:hover{color:#fff;}
+  .foot-bottom{border-top:1px solid rgba(255,255,255,.14);margin-top:36px;padding-top:22px;font-size:13px;color:rgba(255,255,255,.55);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:900px){
+    .hero-grid{grid-template-columns:1fr;gap:34px;}
+    .hero{padding:38px 0 24px;}
+    .hero-sub{max-width:none;}
+    .compare{grid-template-columns:1fr;}
+    .cmp-them{order:2;}
+    .provides{grid-template-columns:1fr;}
+    .tcards{grid-template-columns:1fr;}
+    .foot-grid{grid-template-columns:1fr;gap:28px;}
+    .offer{padding:34px 26px;text-align:center;justify-content:center;}
+    .offer .o-left{max-width:none;}
+    .section{padding:52px 0;}
+  }
+  @media (max-width:560px){
+    body{font-size:16px;}
+    .wrap{padding:0 16px;}
+    .brand-tag{display:none;}
+    .phone-link span.lbl{display:none;}
+    .book-body{padding:18px 16px 20px;}
+    .book-head{padding:20px 18px 16px;}
+    .cmp{padding:24px 20px;}
+    .offer{padding:30px 20px;}
+    .btn{width:100%;}
+    .phone-link.btn{width:auto;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;animation:none !important;scroll-behavior:auto !important;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGO BAR ===================== -->
+<header class="logobar">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Ryde Dental Family home">
+      <span class="brand-mark" aria-hidden="true">
+        <!-- tooth mark -->
+        <svg viewBox="0 0 24 24"><path d="M12 3.5c-2 0-3-1-5-1S3.5 4 3.5 7.5c0 3 .8 4.7 1.4 7.2.5 2.2.7 4.8 2 4.8 1.1 0 1.3-1.6 1.6-3.3.2-1.3.5-2.2 1.5-2.2s1.3.9 1.5 2.2c.3 1.7.5 3.3 1.6 3.3 1.3 0 1.5-2.6 2-4.8.6-2.5 1.4-4.2 1.4-7.2C20.5 4 19 2.5 17 2.5s-3 1-5 1Z"/></svg>
+      </span>
+      <span>
+        <span class="brand-name">Ryde Dental Family</span>
+        <span class="brand-tag">Dentistry with a Gentle Touch</span>
+      </span>
+    </a>
+    <a class="phone-link" href="tel:+61298079800">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5c.4 0 .8.3 1 .7l1.2 3c.2.5 0 1-.4 1.3l-1.3 1a11 11 0 0 0 4.8 4.8l1-1.3c.3-.4.8-.6 1.3-.4l3 1.2c.4.2.7.6.7 1v3c0 1-.9 1.9-2 1.7A15.5 15.5 0 0 1 4.8 6c-.2-1.1.7-2 1.7-2Z"/></svg>
+      <span>
+        <span class="lbl">Call the clinic</span>
+        (02) 9807 9800
+      </span>
+    </a>
+  </div>
+</header>
+
+<a id="top"></a>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="wrap hero-grid">
+
+    <div class="hero-left">
+      <span class="eyebrow">
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+        Free 15-minute phone consultation
+      </span>
+
+      <h1>Gentle dental care, one
+        <span class="swash">free phone call<svg viewBox="0 0 220 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8c50-6 150-6 216-3"/></svg></span>
+        away.</h1>
+
+      <p class="hero-sub">Book a free 15-minute phone call about dental implants, clear aligners, or laser gum treatment. No pressure, no obligation — we&rsquo;ll ring you at a time that suits.</p>
+
+      <ul class="ticks">
+        <li><span class="tick-ic"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span> A calm, comfort-first team you can relax with</li>
+        <li><span class="tick-ic"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span> Right inside Top Ryde City Shopping Centre</li>
+        <li><span class="tick-ic"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span> Saturday appointments and after-hours Thursdays</li>
+        <li><span class="tick-ic"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span> Clear, honest advice — you decide what is right for you</li>
+      </ul>
+    </div>
+
+    <!-- ---------- BOOKING CARD (guided steps) ---------- -->
+    <div class="book-card" id="book">
+      <div class="book-head">
+        <h2>Book your free 15-minute call</h2>
+        <div class="progress">
+          <span class="p-track"><i id="pFill"></i></span>
+          <span class="p-count"><span id="pNow">Step 1</span> of 2</span>
+        </div>
+      </div>
+      <div class="book-body">
+
+        <!-- STEP 1 — choose treatment -->
+        <div class="bstep" data-step="1">
+          <div class="step-label"><span class="step-num">1</span> What would you like to talk about?</div>
+          <div class="treatments" role="radiogroup" aria-label="Choose a treatment">
+
+            <button class="treat-btn" role="radio" data-key="implants" aria-checked="true">
+              <span class="t-ic"><svg viewBox="0 0 24 24"><path d="M12 2v7"/><path d="M9 5h6"/><path d="M8.5 9h7l-.7 8c-.15 2-1.3 4-2.8 4s-2.65-2-2.8-4Z"/></svg></span>
+              <span class="t-txt"><span class="t-name">Dental implants</span><span class="t-desc">Replace missing teeth</span></span>
+              <span class="t-check"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
+            </button>
+
+            <button class="treat-btn" role="radio" data-key="aligners" aria-checked="false">
+              <span class="t-ic"><svg viewBox="0 0 24 24"><path d="M4 9c0-1 1-2 2-2h12c1 0 2 1 2 2 0 3-1 8-4 8-1.5 0-2-2-4-2s-2.5 2-4 2c-3 0-4-5-4-8Z"/></svg></span>
+              <span class="t-txt"><span class="t-name">Clear aligners</span><span class="t-desc">Straighten discreetly</span></span>
+              <span class="t-check"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
+            </button>
+
+            <button class="treat-btn" role="radio" data-key="gum" aria-checked="false">
+              <span class="t-ic"><svg viewBox="0 0 24 24"><path d="M12 3c4 0 7 2.5 7 6 0 4.5-3.5 7-7 11-3.5-4-7-6.5-7-11 0-3.5 3-6 7-6Z"/><path d="M12 9v4"/></svg></span>
+              <span class="t-txt"><span class="t-name">Laser gum treatment</span><span class="t-desc">Healthier gums, gently</span></span>
+              <span class="t-check"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>
+            </button>
+
+          </div>
+          <button class="btn btn-primary btn-block" id="toStep2">
+            Continue to choose a time
+            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+
+        <!-- STEP 2 — pick a time -->
+        <div class="bstep" data-step="2" hidden>
+          <button class="backlink" id="toStep1">
+            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+            Change treatment
+          </button>
+          <div class="chosen-chip">
+            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
+            <span id="chosenLabel">Dental implants</span>
+          </div>
+          <div class="step-label"><span class="step-num">2</span> Pick a time for your free call</div>
+          <div id="cal-embed"><!-- Cal.com inline embed loads here --></div>
+          <div class="cal-note">
+            <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+            Your chosen time is held for you — no one else can book it.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== WHY CHOOSE US ===================== -->
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">The gentle difference</span>
+      <h2>Care that feels calm, not clinical</h2>
+      <p>We built our practice around one idea: dental visits should feel comfortable. Here is how a visit with us compares.</p>
+    </div>
+    <div class="compare">
+
+      <div class="cmp cmp-us">
+        <h3><span class="cmp-badge"><svg viewBox="0 0 24 24"><path d="M12 3c-2 0-3-1-5-1S3.5 4 3.5 7.5c0 3 .8 4.7 1.4 7.2.5 2.2.7 4.8 2 4.8 1.1 0 1.3-1.6 1.6-3.3.2-1.3.5-2.2 1.5-2.2s1.3.9 1.5 2.2c.3 1.7.5 3.3 1.6 3.3 1.3 0 1.5-2.6 2-4.8.6-2.5 1.4-4.2 1.4-7.2C20.5 4 19 2.5 17 2.5s-3 1-5 1Z"/></svg></span> With Ryde Dental Family</h3>
+        <p class="cmp-tag">What our patients tell us they feel</p>
+        <ul>
+          <li><span class="ci cmp-badge" style="width:26px;height:26px;background:var(--green-soft);"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 13l4 4L19 7"/></svg></span> Time to listen, and answers in plain language</li>
+          <li><span class="ci cmp-badge" style="width:26px;height:26px;background:var(--green-soft);"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 13l4 4L19 7"/></svg></span> A relaxed pace — we go at your comfort level</li>
+          <li><span class="ci cmp-badge" style="width:26px;height:26px;background:var(--green-soft);"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 13l4 4L19 7"/></svg></span> Clear pricing and options, explained up front</li>
+          <li><span class="ci cmp-badge" style="width:26px;height:26px;background:var(--green-soft);"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 13l4 4L19 7"/></svg></span> Flexible times, including Saturdays and Thursday evenings</li>
+        </ul>
+      </div>
+
+      <div class="cmp cmp-them">
+        <h3><span class="cmp-badge"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6M15 9l-6 6"/></svg></span> A rushed appointment</h3>
+        <p class="cmp-tag">What we hear people want to avoid</p>
+        <ul>
+          <li><span class="ci cmp-badge" style="width:26px;height:26px;"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M6 12h12"/></svg></span> Feeling hurried in and out of the chair</li>
+          <li><span class="ci cmp-badge" style="width:26px;height:26px;"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M6 12h12"/></svg></span> Jargon that leaves you unsure what is happening</li>
+          <li><span class="ci cmp-badge" style="width:26px;height:26px;"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M6 12h12"/></svg></span> Surprise costs you did not agree to</li>
+          <li><span class="ci cmp-badge" style="width:26px;height:26px;"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M6 12h12"/></svg></span> Weekday-only hours that never quite fit</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== WHAT THE CONSULTATION PROVIDES ===================== -->
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Your free 15 minutes</span>
+      <h2>What happens on the call</h2>
+      <p>A short, friendly phone chat — here is exactly what you can expect from it.</p>
+    </div>
+    <div class="provides">
+      <div class="prov-item">
+        <span class="pi-ic"><svg viewBox="0 0 24 24"><path d="M8 10h8M8 14h5"/><path d="M21 12a8 8 0 0 1-8 8H7l-4 3 1-4A8 8 0 1 1 21 12Z"/></svg></span>
+        <div><h3>A relaxed conversation</h3><p>Tell us what is on your mind — a concern, a goal, or just a question you have been putting off.</p></div>
+      </div>
+      <div class="prov-item">
+        <span class="pi-ic"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 5 5.5.8-4 3.9 1 5.5L12 15.8 7 18.2l1-5.5-4-3.9L9.5 8Z"/></svg></span>
+        <div><h3>The options that suit you</h3><p>We talk through whether implants, aligners, or gum treatment may be a good fit — in simple terms.</p></div>
+      </div>
+      <div class="prov-item">
+        <span class="pi-ic"><svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg></span>
+        <div><h3>Clear next steps</h3><p>You will know what a visit would involve, roughly what it costs, and what to expect — no surprises.</p></div>
+      </div>
+      <div class="prov-item">
+        <span class="pi-ic"><svg viewBox="0 0 24 24"><path d="M12 21C7 17 4 14 4 9.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 8 3.5C20 14 17 17 12 21Z"/></svg></span>
+        <div><h3>Zero pressure</h3><p>There is nothing to sign and nothing to decide on the spot. Take your time — the choice is always yours.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== OFFER BAND ===================== -->
+<section class="section" style="padding-top:0;">
+  <div class="wrap">
+    <div class="offer">
+      <div class="o-left">
+        <span class="o-badge"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.5 5 5.5.8-4 3.9 1 5.5L12 15.8 7 18.2l1-5.5-4-3.9L9.5 8Z"/></svg> Book today and you get</span>
+        <h2>Your first 15-minute phone consultation, free.</h2>
+        <p>No obligation and nothing to pay. Choose a treatment, pick a time, and we will call you for a relaxed chat.</p>
+      </div>
+      <a href="#book" class="btn btn-primary">Book my free consult
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TREATMENT CARDS ===================== -->
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">What we can help with</span>
+      <h2>Three gentle ways to a healthier smile</h2>
+      <p>Not sure which is right for you? That is exactly what the free consult is for.</p>
+    </div>
+    <div class="tcards">
+
+      <div class="tcard">
+        <span class="tc-ic"><svg viewBox="0 0 24 24"><path d="M12 2v7"/><path d="M9 5h6"/><path d="M8.5 9h7l-.7 8c-.15 2-1.3 4-2.8 4s-2.65-2-2.8-4Z"/></svg></span>
+        <h3>Dental implants</h3>
+        <p>A natural-looking, long-term way to replace one or more missing teeth, so you can eat and smile with confidence again.</p>
+        <button class="tc-link" data-jump="implants">Book a free consult <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+
+      <div class="tcard">
+        <span class="tc-ic"><svg viewBox="0 0 24 24"><path d="M4 9c0-1 1-2 2-2h12c1 0 2 1 2 2 0 3-1 8-4 8-1.5 0-2-2-4-2s-2.5 2-4 2c-3 0-4-5-4-8Z"/></svg></span>
+        <h3>Clear aligners</h3>
+        <p>Gently straighten your teeth with clear, removable trays — a discreet alternative to traditional braces for adults and teens.</p>
+        <button class="tc-link" data-jump="aligners">Book a free consult <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+
+      <div class="tcard">
+        <span class="tc-ic"><svg viewBox="0 0 24 24"><path d="M12 3c4 0 7 2.5 7 6 0 4.5-3.5 7-7 11-3.5-4-7-6.5-7-11 0-3.5 3-6 7-6Z"/><path d="M12 9v4"/></svg></span>
+        <h3>Laser gum treatment</h3>
+        <p>A modern, gentle approach to treating gum concerns — often more comfortable, with a kinder recovery than older methods.</p>
+        <button class="tc-link" data-jump="gum">Book a free consult <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FAQ ===================== -->
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">Good to know</span>
+      <h2>Common questions</h2>
+    </div>
+    <div class="faq">
+      <details class="faq-item" open>
+        <summary>Is the consultation really free? <svg class="ic fq-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="fq-body">Yes. Your first 15-minute phone consultation is completely free, with no obligation and nothing to pay. It is simply a chance to talk things through.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Where are you located? <svg class="ic fq-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="fq-body">We are inside Top Ryde City Shopping Centre — Shop 2035, Ryde NSW 2112 — with easy parking on site.</div>
+      </details>
+      <details class="faq-item">
+        <summary>What times can I book? <svg class="ic fq-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="fq-body">Monday to Friday, 9am to 5pm, with Saturday appointments available and after-hours on Thursdays. The calendar above only shows times we are genuinely free.</div>
+      </details>
+      <details class="faq-item">
+        <summary>Do I have to decide anything on the call? <svg class="ic fq-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="fq-body">Not at all. The call is a relaxed chat to answer your questions and explain your options. There is nothing to sign and no pressure to book further.</div>
+      </details>
+      <details class="faq-item">
+        <summary>I am not sure which treatment I need — what should I pick? <svg class="ic fq-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="fq-body">Choose whichever feels closest to what is on your mind. On the call we will listen and point you in the right direction — there is no wrong choice.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FINAL CTA ===================== -->
+<section class="section section-alt final">
+  <div class="wrap">
+    <h2>Ready when you are</h2>
+    <p>Book your free 15-minute consult now, or call the clinic on (02) 9807 9800. We would love to help you feel at ease.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+      <a href="#book" class="btn btn-primary">Book my free consult
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a href="tel:+61298079800" class="btn btn-ghost">
+        <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5c.4 0 .8.3 1 .7l1.2 3c.2.5 0 1-.4 1.3l-1.3 1a11 11 0 0 0 4.8 4.8l1-1.3c.3-.4.8-.6 1.3-.4l3 1.2c.4.2.7.6.7 1v3c0 1-.9 1.9-2 1.7A15.5 15.5 0 0 1 4.8 6c-.2-1.1.7-2 1.7-2Z"/></svg>
+        Call (02) 9807 9800</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="brand" style="margin-bottom:8px;">
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5c-2 0-3-1-5-1S3.5 4 3.5 7.5c0 3 .8 4.7 1.4 7.2.5 2.2.7 4.8 2 4.8 1.1 0 1.3-1.6 1.6-3.3.2-1.3.5-2.2 1.5-2.2s1.3.9 1.5 2.2c.3 1.7.5 3.3 1.6 3.3 1.3 0 1.5-2.6 2-4.8.6-2.5 1.4-4.2 1.4-7.2C20.5 4 19 2.5 17 2.5s-3 1-5 1Z"/></svg></span>
+          <span><span class="brand-name">Ryde Dental Family</span><span class="foot-tag">Dentistry with a Gentle Touch</span></span>
+        </div>
+      </div>
+      <div>
+        <h4>Find us</h4>
+        <a class="f-row" href="https://maps.google.com/?q=Ryde+Dental+Family+Top+Ryde+City" target="_blank" rel="noopener">
+          <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C7 17 4 14 4 9.5A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 8 3.5C20 14 17 17 12 21Z"/><circle cx="12" cy="9.5" r="1.8"/></svg>
+          <span>Top Ryde City Shopping Centre<br>Shop 2035, Ryde NSW 2112</span></a>
+        <a class="f-row" href="tel:+61298079800">
+          <svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5c.4 0 .8.3 1 .7l1.2 3c.2.5 0 1-.4 1.3l-1.3 1a11 11 0 0 0 4.8 4.8l1-1.3c.3-.4.8-.6 1.3-.4l3 1.2c.4.2.7.6.7 1v3c0 1-.9 1.9-2 1.7A15.5 15.5 0 0 1 4.8 6c-.2-1.1.7-2 1.7-2Z"/></svg>
+          <span>(02) 9807 9800</span></a>
+      </div>
+      <div>
+        <h4>Hours</h4>
+        <div class="f-row"><svg class="ic ic-sm" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span>Mon – Fri: 9am – 5pm<br>Saturday: appointments available<br>Thursday: after-hours available</span></div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>&copy; <span id="yr"></span> Ryde Dental Family. All rights reserved.</span>
+      <span>Top Ryde City Shopping Centre, Ryde NSW</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ===================== CAL.COM EMBED LOADER ===================== -->
+<script>
+(function (C, A, L) {
+  let p = function (a, ar) { a.q.push(ar); };
+  let d = C.document;
+  C.Cal = C.Cal || function () {
+    let cal = C.Cal; let ar = arguments;
+    if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; }
+    if (ar[0] === L) {
+      const api = function () { p(api, arguments); };
+      const namespace = ar[1];
+      api.q = api.q || [];
+      if (typeof namespace === "string") { cal.ns[namespace] = cal.ns[namespace] || api; p(cal.ns[namespace], ar); p(cal, ["initNamespace", namespace]); }
+      else p(cal, ar);
+      return;
+    }
+    p(cal, ar);
+  };
+})(window, "https://app.cal.com/embed/embed.js", "init");
+</script>
+
+<script>
+/* ============================================================
+   BOOKING LOGIC
+   ============================================================ */
+
+/* >>> EDIT ONLY THIS LINE <<<
+   Replace  your-clinic-username  with the clinic's real Cal.com
+   username (the word after cal.com/ in their booking link).      */
+const CAL_USERNAME = "rydedentalfamily";
+
+/* The three event types (created inside Cal.com).
+   Only change a slug here if the clinic used a different URL slug. */
+const TREATMENTS = {
+  implants: { label: "Dental implants",       slug: "free-implant-consult" },
+  aligners: { label: "Clear aligners",        slug: "free-aligner-consult" },
+  gum:      { label: "Laser gum treatment",   slug: "free-gum-consult" }
+};
+/* ---- nothing below needs editing ---- */
+
+const isConfigured = !CAL_USERNAME.includes("your-clinic-username");
+const embedBox   = document.getElementById("cal-embed");
+const step1      = document.querySelector('.bstep[data-step="1"]');
+const step2      = document.querySelector('.bstep[data-step="2"]');
+const pFill      = document.getElementById("pFill");
+const pNow       = document.getElementById("pNow");
+const chosenLbl  = document.getElementById("chosenLabel");
+const radios     = document.querySelectorAll(".treat-btn");
+
+let selected = "implants";   // default choice
+let calReady = false;
+let loadedKey = null;        // which calendar is currently loaded
+
+function initCalOnce() {
+  if (calReady) return;
+  Cal("init", { origin: "https://cal.com" });
+  Cal("ui", {
+    hideEventTypeDetails: false,
+    layout: "month_view",
+    cssVarsPerTheme: { light: { "cal-brand": "#EE7A32" } }
+  });
+  calReady = true;
+}
+
+function showPlaceholder(label) {
+  embedBox.innerHTML =
+    '<div class="cal-placeholder">' +
+      '<span class="p-ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 15h3"/></svg></span>' +
+      '<strong>Live calendar for ' + label + '</strong>' +
+      '<span>Real available times appear here once the clinic&rsquo;s Cal.com account is connected. Everything else on this page is final.</span>' +
+    '</div>';
+}
+
+/* load the calendar for the selected treatment (only when Step 2 is shown) */
+function loadCalendar() {
+  const t = TREATMENTS[selected];
+  if (!t || loadedKey === selected) return;   // already showing the right one
+  loadedKey = selected;
+
+  if (!isConfigured) { showPlaceholder(t.label); return; }
+
+  initCalOnce();
+  embedBox.innerHTML = '<div id="cal-embed-inner"></div>';   // fresh container, no stacking
+  Cal("inline", {
+    elementOrSelector: "#cal-embed-inner",
+    calLink: CAL_USERNAME + "/" + t.slug,
+    layout: "month_view",
+    config: { theme: "light" }
+  });
+}
+
+/* ---- step navigation ---- */
+function goStep(n) {
+  const onTwo = (n === 2);
+  step1.hidden = onTwo;
+  step2.hidden = !onTwo;
+  pFill.style.width = onTwo ? "100%" : "50%";
+  pNow.textContent = "Step " + n;
+  if (onTwo) {
+    chosenLbl.textContent = TREATMENTS[selected].label;
+    loadCalendar();
+  }
+}
+
+/* ---- treatment choice (Step 1) ---- */
+radios.forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    radios.forEach(function (b) { b.setAttribute("aria-checked", "false"); });
+    btn.setAttribute("aria-checked", "true");
+    selected = btn.getAttribute("data-key");
+  });
+});
+
+document.getElementById("toStep2").addEventListener("click", function () { goStep(2); });
+document.getElementById("toStep1").addEventListener("click", function () { goStep(1); });
+
+/* ---- "Book a free consult" links on the treatment cards jump straight to Step 2 ---- */
+document.querySelectorAll("[data-jump]").forEach(function (link) {
+  link.addEventListener("click", function () {
+    const key = link.getAttribute("data-jump");
+    const btn = document.querySelector('.treat-btn[data-key="' + key + '"]');
+    if (btn) btn.click();      // sets `selected`
+    goStep(2);
+    document.getElementById("book").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+});
+
+/* ---- footer year ---- */
+document.getElementById("yr").textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
