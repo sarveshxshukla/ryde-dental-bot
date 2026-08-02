@@ -199,6 +199,7 @@ function parseReply(raw) {
   let s = (raw || "").trim().replace(/```json|```/g, "").trim();
   const a = s.indexOf("{"), b = s.lastIndexOf("}");
   const core = (a !== -1 && b !== -1 && b > a) ? s.slice(a, b + 1) : s;
+  
   try {
     const o = JSON.parse(core);
     return {
@@ -208,15 +209,24 @@ function parseReply(raw) {
       lead: o.lead && typeof o.lead === "object" ? o.lead : null,
     };
   } catch {
-    // JSON came back incomplete/truncated — salvage just the reply text (never show raw JSON to the user)
-    const m = s.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+    // JSON came back badly formed — salvage the reply text using a multi-line regex
+    const m = s.match(/"reply"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|}$))/);
+    
     if (m) {
+      // Clean up the extracted string
       const reply = m[1].replace(/\\"/g, '"').replace(/\\n/g, "\n").replace(/\\\\/g, "\\");
       let chips = [];
-      const cm = s.match(/"chips"\s*:\s*\[([^\]]*)\]/);
-      if (cm) { try { chips = JSON.parse("[" + cm[1] + "]").filter(x => typeof x === "string").slice(0, 4); } catch {} }
+      
+      const cm = s.match(/"chips"\s*:\s*\[([\s\S]*?)\]/);
+      if (cm) { 
+        try { 
+          chips = JSON.parse("[" + cm[1] + "]").filter(x => typeof x === "string").slice(0, 4); 
+        } catch {} 
+      }
       return { reply: reply, chips: chips, action: "none", lead: null };
     }
+    
+    // Absolute worst-case scenario
     return { reply: "Sorry, I had a hiccup — you can reach us on (02) 9807 9800.", chips: ["Book a visit", "Request a callback"], action: "none", lead: null };
   }
 }
@@ -270,7 +280,8 @@ function emailLead(s, lead, type) {
     "Mobile: " + lead.phone + "\n" +
     "Email: " + (lead.email || "(not provided)") + "\n" +
     "Contacted about: " + (lead.service || "General enquiry") + "\n";
-  s.emailedCount = s.messages.length; s.leadEmailed = true;
+  s.emailedCount = s.messages ? s.messages.length : 0; 
+  s.leadEmailed = true;
   notify(subject, body);
 }
 // Lazily email a chat transcript once it has gone quiet (runs whenever any request comes in)
@@ -482,7 +493,10 @@ app.post("/api/admin/contact-note", auth, (req, res) => {
 app.post("/api/admin/conversation-delete", auth, (req, res) => {
   const sid = String(req.body?.sessionId || "");
   if (!sid) return res.status(400).json({ error: "missing sessionId" });
-  db.sessions = (db.sessions || []).filter(s => s.id !== sid);
+  
+  // FIXED: Delete the property from the object directly
+  delete db.sessions[sid]; 
+  
   save();
   res.json({ ok: true });
 });
