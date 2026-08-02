@@ -348,7 +348,7 @@ app.post("/api/chat", async (req, res) => {
     // If the visitor asks to CALL / phone / speak to someone -> give a direct tap-to-call button (no questions).
     const callIntent = /\b(call|phone|ring|speak|talk)\b/i.test(message || "");
     // Otherwise, if they mention anything booking-related -> give the booking button immediately (no questions).
-    const bookingIntent = /\b(book|booking|appointment|appointments|reserve|schedule|come in|coming in|pop in|get in|see (the |a )?dentist|see someone|be seen|visit|consult|consultation|check ?up|make.*(booking|appointment)|when.*(open|available|free)|available)\b/i.test(message || "");
+    const bookingIntent = /\b(book|booking|appointment|appointments|reserve|schedule|come in|coming in|pop in|get in|see (the |a )?dentist|see someone|be seen|consult|consultation|check ?up|make.*(booking|appointment)|(have|any|get).*(availability|appointment)|availability)\b/i.test(message || "");
     if (callIntent) {
       resp.cta = { label: "\ud83d\udcde Call (02) 9807 9800", url: "tel:0298079800" };
     } else if (out.action === "book" || out.action === "callback" || bookingIntent) {
