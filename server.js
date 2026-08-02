@@ -349,9 +349,15 @@ app.post("/api/chat", async (req, res) => {
     const callIntent = /\b(call|phone|ring|speak|talk)\b/i.test(message || "");
     // Otherwise, if they mention anything booking-related -> give the booking button immediately (no questions).
     const bookingIntent = /\b(book|booking|appointment|appointments|reserve|schedule|come in|coming in|pop in|get in|see (the |a )?dentist|see someone|be seen|consult|consultation|check ?up|make.*(booking|appointment)|(have|any|get).*(availability|appointment)|availability)\b/i.test(message || "");
+    // Also look at what the BOT is about to say — if its reply references tapping/clicking a button
+    // to book, we MUST attach that button (otherwise the reply promises a button that never appears).
+    const replyText = String(out.reply || "");
+    const replyPromisesButton = /button below|tap the button|click the button|below to book|book (you |your )?.*below/i.test(replyText);
+    const replyMentionsBooking = /\bbook\b|\bbooking\b|\bappointment\b|book you in|get you (sorted|booked|in)/i.test(replyText);
+
     if (callIntent) {
       resp.cta = { label: "\ud83d\udcde Call (02) 9807 9800", url: "tel:0298079800" };
-    } else if (out.action === "book" || out.action === "callback" || bookingIntent) {
+    } else if (out.action === "book" || out.action === "callback" || bookingIntent || replyPromisesButton || replyMentionsBooking) {
       resp.cta = { label: "\ud83d\udcc5 Book an appointment", url: BOOKING_URL };
     }
     res.json(resp);
