@@ -100,20 +100,28 @@ PRICING: never quote a number. Say it depends and needs a quick look, mention pa
 
 FREE CONSULTATION OFFER: We offer a genuinely FREE consultation for dental implants and for Invisalign. Whenever someone shows any interest in implants or Invisalign (asks about them, cost, suitability, etc.), warmly let them know the consult is on us — frame it with care, e.g. "Because we really care about getting this right for you, we offer a complimentary (free) consultation for that — so you can explore your options with zero pressure." Then invite them to book that free consult.
 
-KEEP IT BRIEF — resolve the person's question within about 4 replies maximum. Answer what they asked directly and stop; do NOT ask follow-up questions or keep the conversation going once they have their answer. Never ask more than one short question in a reply, and only if truly necessary. Do NOT push booking on people who are just asking a question. ONLY start collecting booking details (and only then will a booking button appear) when the person clearly shows they want to book or be contacted — e.g. they say "book", "appointment", "can I come in", "how do I make a booking", or agree when you offer. If they're only asking for information, answer it and at most gently offer once ("want me to book you in?") — if they don't take it up, let it go. BOOKING & CALLBACKS: help the person book by collecting, conversationally and ONE thing at a time, IN THIS ORDER: 1) their name, 2) best mobile, 3) what it's for, 4) roughly when suits, 5) and finally whether they are a NEW or EXISTING patient. For a callback you only need name, mobile and the topic. Once you have all of it, set the action and reply with a short, warm thank-you that does NOT promise or state a specific appointment time — instead reassure them our team will reach out to confirm (e.g. "Thanks Sarah! 😊 I've passed your details to our dental care team — they'll be in touch shortly to confirm a time that suits you."). NEVER say "you're booked for [a time]" or commit to a slot; only the clinic confirms actual appointment times.
+KEEP IT BRIEF — resolve the person's question in 2-3 replies maximum, then close warmly. Answer what they asked directly and stop. Do NOT keep the conversation going with extra questions.
+
+BOOKING — THIS IS THE MOST IMPORTANT RULE: The moment someone wants to book, or mentions an appointment, or asks how to come in / be seen / make a booking (or anything close to it), DO NOT ask ANY questions. Do NOT ask their name, mobile, what it's for, when suits, or whether they're a new or existing patient. Do NOT offer date or time options. Simply give ONE warm sentence telling them they can book easily, and the booking button appears automatically below your message. For example: "You can easily book your appointment with Ryde Dental Family — just tap the button below and we'll look after you." That's it — one friendly line, nothing else. The green "Book an appointment" button is added for you automatically; you do NOT put a time or date in your reply and you do NOT ask anything further. Keep lead empty and action "none" — the button handles everything.
+
+CALLING: if someone wants to call, phone, ring or speak to the clinic, DO NOT ask any questions — just give ONE warm line telling them they can call us directly, and a tap-to-call button appears automatically below. e.g. "Of course — you can reach our friendly team directly on the number below, we'd love to help." Keep action "none" and lead empty; the call button is added for you.
+
+CALLBACKS: only if someone specifically asks to be CALLED BACK (rather than booking or calling us), warmly say the team will call them. Otherwise always steer to the booking button.
 
 ALWAYS reply with ONLY a JSON object, no markdown:
 {"reply":"<your message>","chips":["<short option>"],"action":"none","lead":{"name":"","phone":"","service":"","when":"","patientType":""}}
 - chips: 2-4 short tappable suggestions in your voice; [] if none fit.
-- action: "none" normally. Set "book" once you have name + mobile + what-for + when + new/existing (fill lead, with patientType = "New patient" or "Existing patient"). Set "callback" once you have name + mobile + topic (fill lead.name, lead.phone, lead.service).
+- action: keep "none" almost always — the booking button is added automatically when someone wants to book, so you never need to set "book" yourself or collect booking details. Only set "callback" if someone explicitly asks to be called back and gives a name + mobile + topic.
 
 STYLE EXAMPLES — match this short length and relaxed Aussie tone:
 Them: what is a root canal
 You: {"reply":"It clears the infection inside the tooth and seals it, so the pain settles and you keep your own tooth — and we keep it really comfortable the whole way. Want me to book you in?","chips":["Book a visit","Is it painful?"],"action":"none","lead":{"name":"","phone":"","service":"","when":"","patientType":""}}
 Them: how much is whitening
 You: {"reply":"It depends on the option, so we'd quote after a quick look — and no worries, we do payment plans. Want me to sort you a consult?","chips":["Book a consult","Request a callback"],"action":"none","lead":{"name":"","phone":"","service":"","when":"","patientType":""}}
-Them: monday for a clean please
-You: {"reply":"Perfect, Monday it is. Roughly what time of day suits you best?","chips":["Morning","Afternoon"],"action":"none","lead":{"name":"","phone":"","service":"clean","when":"Monday","patientType":""}}`;
+Them: I want to book an appointment
+You: {"reply":"You can easily book your appointment with Ryde Dental Family — just tap the button below and we'll look after you.","chips":[],"action":"none","lead":{"name":"","phone":"","service":"","when":"","patientType":""}}
+Them: can I come in for a clean on monday
+You: {"reply":"Absolutely — booking's easy, just tap the button below and we'll get you sorted.","chips":[],"action":"none","lead":{"name":"","phone":"","service":"","when":"","patientType":""}}`;
 
 /* -------------------- Gemini call -------------------- */
 const FALLBACK_MODEL = "gemini-2.5-flash-lite";
@@ -127,7 +135,7 @@ function buildSystem(session) {
 "\u26a0\ufe0f TOP-PRIORITY RULE \u2014 THIS OVERRIDES THE BOOKING STEPS BELOW:\n" +
 first + " has ALREADY completed our contact form, so we HAVE their name, mobile number and email on file.\n" +
 "\u2022 NEVER ask " + first + " for their name, mobile, or email \u2014 you already have all three. Asking again is a mistake.\n" +
-"\u2022 For a booking for THEMSELVES: SKIP booking steps 1 (name) and 2 (mobile) completely. Only ask what the visit is for, roughly when suits, and whether they're a new or existing patient \u2014 then set action to \"book\" and leave lead.name and lead.phone EMPTY (reception already has them).\n" +
+"\u2022 For a booking: do NOT ask anything at all \u2014 just give one warm line telling them to tap the button below to book. The booking button appears automatically. Keep action \"none\" and lead empty.\n" +
 "\u2022 For a CALLBACK for THEMSELVES: you ALREADY have their name and mobile \u2014 do NOT ask for the mobile number again. Just confirm what it's about (the topic), then set action to \"callback\" and leave lead.name and lead.phone EMPTY. A quick \"No worries, I'll get the team to call you about that \\u2014 anything in particular you'd like them to know?\" is perfect.\n" +
 "\u2022 The ONLY time you may collect a fresh name + mobile is if " + first + " clearly says the appointment/callback is for a DIFFERENT person (e.g. their child, partner or friend).\n\n" +
 SYSTEM_PROMPT
@@ -337,16 +345,47 @@ app.post("/api/chat", async (req, res) => {
     }
     save();
     const resp = { reply: out.reply, chips: out.chips, mode: "ai" };
-    // Show the green booking button immediately if the AI decided to book/callback,
-    // OR if the visitor's own message mentions booking — no need to ask more questions.
-    const bookingIntent = /\b(book|booking|appointment|appointments|reserve|schedule|come in|see (the |a )?dentist|make.*(booking|appointment))\b/i.test(message || "");
-    if (out.action === "book" || out.action === "callback" || bookingIntent) {
+    // If the visitor asks to CALL / phone / speak to someone -> give a direct tap-to-call button (no questions).
+    const callIntent = /\b(call|phone|ring|speak|talk)\b/i.test(message || "");
+    // Otherwise, if they mention anything booking-related -> give the booking button immediately (no questions).
+    const bookingIntent = /\b(book|booking|appointment|appointments|reserve|schedule|come in|coming in|pop in|get in|see (the |a )?dentist|see someone|be seen|visit|consult|consultation|check ?up|make.*(booking|appointment)|when.*(open|available|free)|available)\b/i.test(message || "");
+    if (callIntent) {
+      resp.cta = { label: "\ud83d\udcde Call (02) 9807 9800", url: "tel:0298079800" };
+    } else if (out.action === "book" || out.action === "callback" || bookingIntent) {
       resp.cta = { label: "\ud83d\udcc5 Book an appointment", url: BOOKING_URL };
     }
     res.json(resp);
   } catch (e) {
     console.error("Gemini error:", e.message);
     res.json({ reply: "Sorry, I'm having a moment — you can reach our team on (02) 9807 9800. Want to leave your number for a callback?", chips: ["Request a callback"], mode: "ai" });
+  }
+});
+
+// landing-page bookings (Meta ad pages) -> same admin inbox as chat leads. Adds a lead; touches no existing route.
+app.post("/api/lead", (req, res) => {
+  try {
+    const b = req.body || {};
+    const name  = String(b.name  || "").trim();
+    const phone = String(b.phone || "").trim();
+    const email = String(b.email || "").trim();
+    const service = String(b.treatment || b.service || "General enquiry").trim();
+    const when = String(b.preferredSlot || b.when || "Flexible").trim();
+    const source = String(b.source || "Landing page").trim();
+    if (name.length < 2 || phone.replace(/\D/g, "").length < 8) {
+      return res.status(400).json({ ok: false, error: "name and valid phone required" });
+    }
+    const norm = phone.replace(/\D/g, "");
+    const dup = db.leads.some(l => l.type === "Booking" && String(l.phone).replace(/\D/g, "") === norm && (Date.now() - l.createdAt) < 6 * 3600 * 1000);
+    if (!dup) {
+      db.leads.unshift({ id: "RDF-" + Date.now().toString().slice(-6), sessionId: "landing", type: "Booking", name, phone, email, service, when, patientType: "New patient", status: "New", source, createdAt: Date.now() });
+      try { emailLead({ contact: { name, phone, email } }, { name, phone, email, service, when, patientType: "New patient" }, "Booking"); } catch (e) {}
+      pushNotify("New booking \ud83d\udcc5", name + " \u00b7 " + service + " (Ad)", "rdf-lead");
+      save();
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("lead error:", e.message);
+    res.status(500).json({ ok: false });
   }
 });
 
