@@ -76,6 +76,12 @@ a{color:var(--teal)}
 .replybar .send{width:44px;height:44px;border:none;border-radius:50%;background:var(--coral);color:#fff;cursor:pointer;font-size:18px;flex-shrink:0}
 .nodetail{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13.5px;text-align:center;padding:20px}
 
+/* bookings & reports date filters */
+.filter-date { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); font-size: 13px; outline: none; background: #fff; color: var(--ink); }
+.p-context { background: #FFF6EE; padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 12.5px; display: flex; flex-direction: column; flex-shrink: 0; }
+.p-context .ctx-row { display: flex; gap: 16px; align-items: center; }
+.p-context-title { font-weight: 700; color: var(--tealDeep); opacity: 0.9; }
+
 /* bookings */
 #bookTab{flex:1;overflow-y:auto;padding:18px;display:none}
 .tablewrap{max-width:1000px;margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
@@ -144,6 +150,9 @@ html[data-theme="dark"] .replybar input,html[data-theme="dark"] input,html[data-
 html[data-theme="dark"] .citem.sel{background:#33251A}
 html[data-theme="dark"] .m.team{background:#3A2A1E;border-color:#4A3524;color:var(--ink)}
 html[data-theme="dark"] .qrpop,html[data-theme="dark"] .card,html[data-theme="dark"] .panel2,html[data-theme="dark"] .m.sys{background:var(--paper)}
+html[data-theme="dark"] .filter-date { background: #2B2018; color: var(--ink); border-color: #3A2C20; }
+html[data-theme="dark"] .p-context { background: #2A2016; border-color: #3A2C20; }
+html[data-theme="dark"] .p-context-title { color: var(--coral); }
 .iconbtn{background:rgba(255,255,255,.18);border:none;color:#fff;width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:15px;flex-shrink:0}
 .iconbtn:hover{background:rgba(255,255,255,.3)}
 .convtools{padding:9px 10px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px;flex-shrink:0;background:var(--paper)}
@@ -226,6 +235,10 @@ td,th{padding:14px 16px}
 /* let the bookings table scroll sideways on mobile so Status/Received/Delete are reachable */
 .tablewrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
 .tablewrap table{min-width:660px}
+/* pagination rules */
+.pagination{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--paper);border-top:1px solid var(--line);font-size:13.5px}
+.pagination .btn{padding:6px 12px;font-size:13px}
+.c-pag{max-width:1000px;margin:16px auto 0;border-radius:14px;border:1px solid var(--line);overflow:hidden}
 /* settings tab */
 #settingsTab{flex:1;overflow-y:auto;padding:18px;display:none}
 #settingsTab textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;resize:vertical;background:#fff;outline:none;margin-bottom:8px}
@@ -289,17 +302,23 @@ html[data-theme="dark"] #settingsTab textarea{background:#2B2018;color:var(--ink
       <select id="fType"><option value="">All types</option><option>Booking</option><option>Callback</option><option>Enquiry</option></select>
       <select id="fStatus"><option value="">All statuses</option><option>New</option><option>Contacted</option><option>Booked</option></select>
       <select id="fSort"><option value="new">Newest first</option><option value="old">Oldest first</option></select>
+      <input type="date" id="fDateStart" class="filter-date" title="Start date">
+      <input type="date" id="fDateEnd" class="filter-date" title="End date">
     </div>
-    <div class="tablewrap"><div id="leadsBox"></div></div>
+    <div class="tablewrap" id="leadsWrapper"><div id="leadsBox"></div></div>
   </div>
 
   <div id="contactsTab">
     <div class="searchbar" style="display:flex;gap:8px;align-items:center"><input id="contactSearch" placeholder="🔍 Search contacts by name, mobile or email…"/><button id="clearContactsBtn" class="exp danger" style="white-space:nowrap">🗑 Delete all</button></div>
-    <div class="wrap"><div class="cgrid" id="contactsBox"></div></div>
+    <div class="wrap"><div class="cgrid" id="contactsBox"></div><div id="contactsPagBox" class="c-pag"></div></div>
   </div>
 
   <div id="reportsTab">
     <div class="wrap">
+      <div class="filterbar" style="margin-bottom:14px">
+        <input type="date" id="repDateStart" class="filter-date" title="Start date">
+        <input type="date" id="repDateEnd" class="filter-date" title="End date">
+      </div>
       <div class="stats-grid" id="statsGrid"></div>
       <div class="panel2"><div class="sec-h">Busiest days (all chats)</div><div class="bars" id="dowBars"></div></div>
       <div class="panel2"><div class="sec-h">Top reasons people contact you</div><div id="svcList"></div></div>
@@ -357,10 +376,16 @@ var lastSeen = {}; try{ lastSeen=JSON.parse(localStorage.getItem("rdf_seen")||"{
 function saveSeen(){ try{ localStorage.setItem("rdf_seen",JSON.stringify(lastSeen)); }catch(e){} }
 var ocFilter="open", convQuery="", maxUserTs=0, soundReady=false, actx=null;
 var fType="", fStatus="", fSort="new";
+var currentLeadPage=1, leadsPerPage=15;
+var currentContactPage=1, contactsPerPage=12;
+var lastFilterSig="", lastContQ="";
 var QUICK=["We\u2019re open Mon\u2013Fri 9\u20135 and Sat 9\u20134 \ud83d\ude0a","Could you please call us on (02) 9807 9800 so we can lock in a time?","Yes, we can definitely help with that! When suits you best?","Thanks for reaching out \u2014 someone from our team will be with you shortly.","We\u2019re in Top Ryde City, Shop 2035, Level LG1, Ryde NSW 2112.","Great news \u2014 you\u2019re all booked in. See you then! \ud83d\ude04"];
 
 function g(id){ return document.getElementById(id); }
-function esc(s){ return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+// FULLY PATCHED XSS ESCAPE FUNCTION
+function esc(s) { 
+  return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); 
+}
 function hdr(){ return { "Content-Type":"application/json", "x-admin-token": TOK }; }
 function ago(ts){ var s=Math.floor((Date.now()-ts)/1000); if(s<60)return"now"; var m=Math.floor(s/60); if(m<60)return m+"m"; var h=Math.floor(m/60); if(h<24)return h+"h"; return Math.floor(h/24)+"d"; }
 function mmss(ms){ var t=Math.max(0,Math.ceil(ms/1000)); return Math.floor(t/60)+":"+String(t%60).padStart(2,"0"); }
@@ -480,6 +505,13 @@ function selectConv(id){
     '<button class="hb" id="hbBtn" style="display:none">Hand back to Smily</button>'+
     '<button class="rsv" id="rsvBtn"></button>'+
     '<button class="del" id="delChatBtn" title="Delete this chat" style="margin-left:6px;font-size:16px">\uD83D\uDDD1</button></div>'+
+    '<div class="p-context" id="pContext" style="display:none">'+
+      '<div class="ctx-row">'+
+        '<div><span class="p-context-title">📞 Contact:</span> <span id="pCtxPhone"></span></div>'+
+        '<div><span class="p-context-title">📅 Past Leads:</span> <span id="pCtxCount"></span></div>'+
+      '</div>'+
+      '<div style="margin-top:4px"><span class="p-context-title">📝 Note:</span> <span id="pCtxNote"></span></div>'+
+    '</div>'+
     '<div class="tr" id="transcript"></div>'+
     '<div class="replybar"><div class="qrwrap"><button class="qr" id="qrBtn" title="Quick replies">\u26a1</button></div>'+
     '<input id="replyInput" placeholder="Reply as reception (pauses Smily)\u2026" autocomplete="off"/>'+
@@ -541,6 +573,25 @@ function updateHead(){
   g("dSub").innerHTML= s.closed? "Resolved \u00b7 closed" : (human? "You\u2019re handling \u00b7 Smily resumes in "+mmss(rem) : "Smily is handling");
   g("hbBtn").style.display= human? "block":"none";
   var rb=g("rsvBtn"); if(rb) rb.textContent= s.closed? "Reopen" : "\u2713 Resolve";
+  
+  var sessLeads = (DATA.leads||[]).filter(function(l){return l.sessionId === selectedId;});
+  if (sessLeads.length > 0 && g("pContext")) {
+    var cLead = sessLeads[0];
+    var digits=(cLead.phone||"").replace(/\D/g,"");
+    var key=digits||("e:"+(cLead.email||"").toLowerCase());
+    var m=(DATA.contactMeta||{})[key]||{};
+    var allSessLeads = (DATA.leads||[]).filter(function(l){
+        var d=(l.phone||"").replace(/\D/g,"");
+        var k=d||("e:"+(l.email||"").toLowerCase());
+        return k === key;
+    });
+    g("pContext").style.display="flex";
+    g("pCtxPhone").innerHTML = esc(cLead.phone) + (cLead.email ? " &middot; " + esc(cLead.email) : "");
+    g("pCtxCount").textContent = allSessLeads.length;
+    g("pCtxNote").textContent = m.notes ? esc(m.notes) : "No private notes on file.";
+  } else if (g("pContext")) {
+    g("pContext").style.display="none";
+  }
 }
 function appendTranscript(){
   var s=findSession(selectedId), tr=g("transcript"); if(!s||!tr)return;
@@ -564,22 +615,38 @@ function sendReply(){
 /* ---- bookings (only re-render when data actually changes) ---- */
 function telHref(p){ return "tel:"+String(p||"").replace(/[^\d+]/g,""); }
 function smsHref(p){ return "sms:"+String(p||"").replace(/[^\d+]/g,""); }
+
 function renderLeads(force){
   var all=DATA.leads||[];
+  
+  var dStart = g("fDateStart").value ? new Date(g("fDateStart").value).getTime() : 0;
+  var dEnd = g("fDateEnd").value ? new Date(g("fDateEnd").value).getTime() + 86400000 : Infinity;
+
   var rows=all.filter(function(l){
     if(fType && (l.type||"Booking")!==fType) return false;
     if(fStatus && l.status!==fStatus) return false;
+    if(l.createdAt < dStart || l.createdAt >= dEnd) return false;
     return true;
   });
   rows.sort(function(a,b){ return fSort==="old" ? a.createdAt-b.createdAt : b.createdAt-a.createdAt; });
-  var sig=fType+"|"+fStatus+"|"+fSort+"|"+rows.length+"|"+rows.map(function(l){return l.id+l.status;}).join(",");
+  
+  var filterSig=fType+"|"+fStatus+"|"+fSort+"|"+rows.length+"|"+dStart+"|"+dEnd;
+  if(window.lastFilterSig !== filterSig) { currentLeadPage = 1; window.lastFilterSig = filterSig; }
+  
+  var sig=filterSig+"|"+rows.map(function(l){return l.id+l.status;}).join(",");
   if(!force && sig===leadSig) return;
   leadSig=sig;
-  var box=g("leadsBox");
+  
+  var box=g("leadsWrapper");
   if(!all.length){ box.innerHTML='<div class="empty2"><span class="ico">\uD83D\uDCE5</span>No bookings or callbacks yet.<br>They\u2019ll appear here the moment someone books through Smily.</div>'; return; }
   if(!rows.length){ box.innerHTML='<div class="empty">No results match these filters.</div>'; return; }
-  var t='<table><tr><th>Patient</th><th>About</th><th>When</th><th>Status</th><th>Received</th><th></th></tr>';
-  rows.slice(0,120).forEach(function(l){
+  
+  var totalPages = Math.ceil(rows.length / leadsPerPage) || 1;
+  if(currentLeadPage > totalPages) currentLeadPage = totalPages;
+  var pagedRows = rows.slice((currentLeadPage - 1) * leadsPerPage, currentLeadPage * leadsPerPage);
+  
+  var t='<div id="leadsBox"><table><tr><th>Patient</th><th>About</th><th>When</th><th>Status</th><th>Received</th><th></th></tr>';
+  pagedRows.forEach(function(l){
     var typeTag=l.type==="Callback"?' <span class="tag">Callback</span>':l.type==="Enquiry"?' <span class="tag" style="background:#E7EFF7;color:#2C5A7C">Enquiry</span>':'';
     var phone=l.phone?'<a href="'+telHref(l.phone)+'">'+esc(l.phone)+'</a> <a href="'+smsHref(l.phone)+'" class="txtlink" title="Text">\uD83D\uDCAC</a>':'';
     t+='<tr><td>'+(l.sessionId?'<b class="leadopen" data-open="'+esc(l.sessionId)+'" title="Open this chat" style="cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px">'+esc(l.name)+'</b>':'<b>'+esc(l.name)+'</b>')+typeTag+
@@ -589,12 +656,26 @@ function renderLeads(force){
       '<td style="color:var(--muted);font-size:11.5px">'+ago(l.createdAt)+' ago</td>'+
       '<td><button class="del" data-del="'+l.id+'" title="Delete">\uD83D\uDDD1</button></td></tr>';
   });
-  box.innerHTML=t+'</table>';
+  
+  var pagHTML = '';
+  if (totalPages > 1) {
+    pagHTML = '<div class="pagination">' +
+      '<button class="btn ghost" data-lpage="'+(currentLeadPage-1)+'" '+(currentLeadPage===1?'disabled':'')+'>&larr; Previous</button>' +
+      '<span style="color:var(--muted)">Page <b>'+currentLeadPage+'</b> of '+totalPages+'</span>' +
+      '<button class="btn ghost" data-lpage="'+(currentLeadPage+1)+'" '+(currentLeadPage===totalPages?'disabled':'')+'>Next &rarr;</button>' +
+      '</div>';
+  }
+  
+  box.innerHTML=t+'</table></div>'+pagHTML;
+  
   box.querySelectorAll("button.spill").forEach(function(btn){
     btn.onclick=function(){ fetch("/api/admin/lead-status",{method:"POST",headers:hdr(),body:JSON.stringify({id:btn.getAttribute("data-lead"),status:btn.getAttribute("data-st")})}).then(function(){ leadSig=""; refresh(); }); };
   });
   box.querySelectorAll("button.del[data-del]").forEach(function(b){ b.onclick=function(){ deleteLead(b.getAttribute("data-del")); }; });
   box.querySelectorAll(".leadopen[data-open]").forEach(function(b){ b.onclick=function(){ openLeadChat(b.getAttribute("data-open")); }; });
+  box.querySelectorAll("button[data-lpage]").forEach(function(b){
+    b.onclick=function(){ currentLeadPage=parseInt(b.getAttribute("data-lpage")); leadSig=""; renderLeads(true); };
+  });
 }
 
 /* ---- export leads as CSV (Name, Mobile, Email, Status only) ---- */
@@ -615,7 +696,6 @@ function exportLeads(){
 }
 /* ================= CONTACTS (CRM) ================= */
 var contactSig="";
-function focusedIn(elId){ var el=g(elId); return el && document.activeElement && el.contains(document.activeElement); }
 function buildContacts(){
   var leads=DATA.leads||[], map={};
   leads.forEach(function(l){
@@ -633,17 +713,31 @@ function buildContacts(){
   return Object.values(map).sort(function(a,b){ return b.last-a.last; });
 }
 function renderContacts(force){
-  if(!force && focusedIn("contactsBox")) return;            // don't yank a note someone's typing
   var list=buildContacts(), meta=DATA.contactMeta||{};
   var q=(g("contactSearch")&&g("contactSearch").value||"").toLowerCase().trim();
   if(q){ list=list.filter(function(c){ return (c.name+" "+c.phone+" "+c.email).toLowerCase().indexOf(q)>=0; }); }
+  
+  if(window.lastContQ !== q) { currentContactPage = 1; window.lastContQ = q; }
+  
   var sig=q+"|"+list.map(function(c){ return c.key+c.status+c.count+((meta[c.key]&&meta[c.key].reviewRequestedAt)||0); }).join(",");
   if(!force && sig===contactSig) return;
   contactSig=sig;
+  
   var box=g("contactsBox");
-  if(!list.length){ box.innerHTML='<div class="empty">'+(q?"No contacts match that search.":"No contacts yet — they appear here once someone books or leaves a callback.")+'</div>'; return; }
+  var pagBox=g("contactsPagBox");
+  
+  if(!list.length){ 
+    box.innerHTML='<div class="empty" style="grid-column:1/-1">'+(q?"No contacts match that search.":"No contacts yet — they appear here once someone books or leaves a callback.")+'</div>'; 
+    pagBox.innerHTML=''; 
+    return; 
+  }
+  
+  var totalPages = Math.ceil(list.length / contactsPerPage) || 1;
+  if(currentContactPage > totalPages) currentContactPage = totalPages;
+  var pagedList = list.slice((currentContactPage - 1) * contactsPerPage, currentContactPage * contactsPerPage);
+  
   box.innerHTML="";
-  list.forEach(function(c){
+  pagedList.forEach(function(c){
     var m=meta[c.key]||{}, init=(c.name||"?").trim().slice(0,2).toUpperCase();
     var d=document.createElement("div"); d.className="card";
     d.innerHTML=
@@ -655,55 +749,108 @@ function renderContacts(force){
         '<span class="chip2" style="background:#F0EADE;color:var(--muted)">'+ago(c.last)+' ago</span>'+
         (m.reviewRequestedAt?'<span class="chip2" style="background:#E7EFE8;color:var(--green)">★ review asked</span>':'')+
       '</div>'+
-      '<textarea data-note="'+esc(c.key)+'" placeholder="Add a private note about this patient…">'+esc(m.notes||"")+'</textarea>'+
+      '<textarea id="ta-'+esc(c.key)+'" placeholder="Add private feedback or notes here…">'+esc(m.notes||"")+'</textarea>'+
       '<div class="crow">'+
+        '<button class="btn ghost" data-save-note="'+esc(c.key)+'">💾 Save note</button>'+
         (c.phone?'<a class="btn ghost" href="'+telHref(c.phone)+'">📞 Call</a><a class="btn ghost" href="'+smsHref(c.phone)+'">💬 Text</a>':'')+
         (c.email?(m.reviewRequestedAt?'<button class="btn ghost" disabled style="opacity:.6">✓ Request sent</button>':'<button class="btn ghost" data-rr-name="'+esc(c.name||"")+'" data-rr-email="'+esc(c.email)+'" data-rr-phone="'+esc(c.key)+'">📧 Request review</button>'):(c.phone?'':'<span class="hint" style="margin:0">No email on file</span>'))+
-        '<span class="ok" data-ok="'+esc(c.key)+'"></span>'+
         '<button class="btn ghost cdel" data-del-contact="'+esc(c.key)+'">\uD83D\uDDD1 Delete</button>'+
       '</div>';
     box.appendChild(d);
   });
-  box.querySelectorAll("textarea[data-note]").forEach(function(ta){
-    ta.onblur=function(){
-      var key=ta.getAttribute("data-note"), val=ta.value;
-      DATA.contactMeta=DATA.contactMeta||{}; DATA.contactMeta[key]=Object.assign({},DATA.contactMeta[key],{notes:val}); // keep local copy so refresh doesn't wipe it
+  
+  box.querySelectorAll("[data-save-note]").forEach(function(b){
+    b.onclick=function(){
+      var key=b.getAttribute("data-save-note");
+      var ta=g("ta-"+key); if(!ta)return;
+      var val=ta.value;
+      b.textContent="Saving..."; b.disabled=true;
+      DATA.contactMeta=DATA.contactMeta||{}; 
+      DATA.contactMeta[key]=Object.assign({},DATA.contactMeta[key],{notes:val}); 
       fetch("/api/admin/contact-note",{method:"POST",headers:hdr(),body:JSON.stringify({key:key,notes:val})})
-        .then(function(){ var o=box.querySelector('[data-ok="'+key.replace(/"/g,'')+'"]'); if(o){ o.textContent="✓ saved"; setTimeout(function(){o.textContent="";},1500);} });
+        .then(function(){ 
+            b.textContent="✓ Saved"; 
+            setTimeout(function(){ b.textContent="💾 Save note"; b.disabled=false; }, 2000);
+        }).catch(function(){ b.textContent="⚠️ Error"; b.disabled=false; });
     };
   });
+  
   box.querySelectorAll("[data-rr-email]").forEach(function(btn){
     btn.onclick=function(){ sendReviewRequest(btn.getAttribute("data-rr-name"),btn.getAttribute("data-rr-email"),btn.getAttribute("data-rr-phone"),btn); };
   });
   box.querySelectorAll("[data-del-contact]").forEach(function(b){ b.onclick=function(){ deleteContact(b.getAttribute("data-del-contact")); }; });
+  
+  if (totalPages > 1) {
+    pagBox.innerHTML = '<div class="pagination">' +
+      '<button class="btn ghost" data-cpage="'+(currentContactPage-1)+'" '+(currentContactPage===1?'disabled':'')+'>&larr; Previous</button>' +
+      '<span style="color:var(--muted)">Page <b>'+currentContactPage+'</b> of '+totalPages+'</span>' +
+      '<button class="btn ghost" data-cpage="'+(currentContactPage+1)+'" '+(currentContactPage===totalPages?'disabled':'')+'>Next &rarr;</button>' +
+      '</div>';
+    pagBox.querySelectorAll("button[data-cpage]").forEach(function(b){
+      b.onclick=function(){ currentContactPage=parseInt(b.getAttribute("data-cpage")); contactSig=""; renderContacts(true); };
+    });
+  } else {
+    pagBox.innerHTML = '';
+  }
 }
 if(g("contactSearch")) g("contactSearch").oninput=function(){ renderContacts(true); };
 
 /* ================= REPORTS ================= */
-function renderReports(){
-  var st=DATA.stats; if(!st) return;
+function buildReportUI(chats, cToday, cWeek, leads, bookings, cb, hum, byDowArr, topSvc) {
   var cards=[
-    [st.chats,"Total chats"],[st.chatsToday,"Chats today"],[st.chatsWeek,"This week"],
-    [st.leads,"Leads"],[st.bookings,"Bookings"],[st.callbacks,"Callbacks"],
-    [(st.chats?Math.round(((st.bookings||0)+(st.callbacks||0))/st.chats*100):0)+"%","Conversion"],[st.humanTakeovers,"Handled by you"]
+    [chats,"Total chats"],[cToday,"Chats today"],[cWeek,"This week"],
+    [leads,"Leads"],[bookings,"Bookings"],[cb,"Callbacks"],
+    [(chats?Math.round(((bookings||0)+(cb||0))/chats*100):0)+"%","Conversion"],[hum,"Handled by you"]
   ];
   g("statsGrid").innerHTML=cards.map(function(c){ return '<div class="scard"><b>'+c[0]+'</b><span>'+c[1]+'</span></div>'; }).join("");
   var names=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], order=[1,2,3,4,5,6,0];
-  var vals=order.map(function(i){ return st.byDow[i]||0; }), labels=order.map(function(i){ return names[i]; });
+  var vals=order.map(function(i){ return byDowArr[i]||0; }), labels=order.map(function(i){ return names[i]; });
   var max=Math.max.apply(null,vals.concat([1]));
   g("dowBars").innerHTML=vals.map(function(v,i){
     return '<div class="bar2"><div class="bv">'+(v||"")+'</div><div class="fill" style="height:'+Math.round(v/max*100)+'%"></div><div class="bl">'+labels[i]+'</div></div>';
   }).join("");
-  var sv=st.topServices||[], smax=sv.length?sv[0][1]:1;
-  g("svcList").innerHTML = sv.length
-    ? sv.map(function(s){ return '<div class="svc-row"><div class="snm">'+esc(s[0])+'</div><div class="track"><div class="tk" style="width:'+Math.round(s[1]/smax*100)+'%"></div></div><div class="ct">'+s[1]+'</div></div>'; }).join("")
-    : '<div class="empty">No bookings yet.</div>';
+  var smax=topSvc.length?topSvc[0][1]:1;
+  g("svcList").innerHTML = topSvc.length
+    ? topSvc.map(function(s){ return '<div class="svc-row"><div class="snm">'+esc(s[0])+'</div><div class="track"><div class="tk" style="width:'+Math.round(s[1]/smax*100)+'%"></div></div><div class="ct">'+s[1]+'</div></div>'; }).join("")
+    : '<div class="empty">No bookings for this period.</div>';
+}
+
+function renderReports(){
+  var st=DATA.stats; if(!st) return;
+  var startVal = g("repDateStart").value;
+  var endVal = g("repDateEnd").value;
+  
+  if (!startVal && !endVal) {
+    // Show total stats from backend
+    buildReportUI(st.chats, st.chatsToday, st.chatsWeek, st.leads, st.bookings, st.callbacks, st.humanTakeovers, st.byDow, st.topServices||[]);
+  } else {
+    // Dynamically calculate based on downloaded window
+    var start = startVal ? new Date(startVal).getTime() : 0;
+    var end = endVal ? new Date(endVal).getTime() + 86400000 : Infinity;
+    
+    var fLeads = (DATA.leads||[]).filter(function(l){ return l.createdAt >= start && l.createdAt < end; });
+    var fSess = (DATA.sessions||[]).filter(function(s){ return s.createdAt >= start && s.createdAt < end; });
+    
+    var rChats = fSess.length;
+    var rLeads = fLeads.length;
+    var rBookings = fLeads.filter(function(l){return l.type==="Booking"}).length;
+    var rCallbacks = fLeads.filter(function(l){return l.type==="Callback"}).length;
+    var rHuman = fSess.filter(function(s){ return s.messages.some(function(m){return m.role==="team";}); }).length;
+    
+    var byDow = [0,0,0,0,0,0,0];
+    fSess.forEach(function(s){ byDow[new Date(s.createdAt).getDay()]++; });
+    
+    var svc={};
+    fLeads.forEach(function(l){ var k = l.service || "General enquiry"; svc[k]=(svc[k]||0)+1; });
+    var topSvc = Object.entries(svc).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
+    
+    buildReportUI(rChats, "-", "-", rLeads, rBookings, rCallbacks, rHuman, byDow, topSvc);
+  }
 }
 
 /* ================= REVIEWS / REVIEW REQUESTS ================= */
 var revSig="";
 function renderReviews(force){
-  if(!force && focusedIn("reviewsTab")) return;
   var s=DATA.settings||{}, rr=DATA.reviewRequests||[];
   var sig=(s.reviewLink||"")+"|"+rr.length;
   if(!force && sig===revSig) return;
@@ -805,8 +952,10 @@ if(g("saveGreeting")) g("saveGreeting").onclick=function(){ saveSetting({greetin
 if(g("saveEmail")) g("saveEmail").onclick=function(){ saveSetting({notifyEmail:g("setEmail").value},this,"setEmailState"); };
 if(g("saveResume")) g("saveResume").onclick=function(){ saveSetting({handbackMinutes:g("setResume").value},this,"setResumeState"); };
 if(g("saveReviewLink")) g("saveReviewLink").onclick=function(){ saveSetting({reviewLink:g("setReviewLink").value},this,"setReviewState"); };
-/* bookings filters */
-["fType","fStatus","fSort"].forEach(function(id){ var el=g(id); if(el) el.onchange=function(){ fType=g("fType").value; fStatus=g("fStatus").value; fSort=g("fSort").value; renderLeads(true); }; });
+
+/* Bind Date Filters */
+["fType","fStatus","fSort","fDateStart","fDateEnd"].forEach(function(id){ var el=g(id); if(el) el.onchange=function(){ fType=g("fType").value; fStatus=g("fStatus").value; fSort=g("fSort").value; renderLeads(true); }; });
+["repDateStart","repDateEnd"].forEach(function(id){ var el=g(id); if(el) el.onchange=function(){ renderReports(); }; });
 
 function deleteLead(id){
   if(!confirm("Delete this booking/lead? This can\u2019t be undone.")) return;
