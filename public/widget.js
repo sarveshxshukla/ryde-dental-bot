@@ -227,8 +227,14 @@
     push("user", text);
     chipsEl.innerHTML = "";
     typing(true);
+    
+    // FIX: Attach contact details and history so the server self-heals if it restarted
+    var payload = { sessionId: SID, message: text };
+    if (savedContact) payload.contact = savedContact;
+    if (msgs.length > 0) payload.history = msgs;
+
     try {
-      var r = await fetch(API + "/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: SID, message: text }) });
+      var r = await fetch(API + "/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       var d = await r.json();
       typing(false);
       if (d.mode) setMode(d.mode);
