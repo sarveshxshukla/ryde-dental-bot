@@ -135,10 +135,10 @@
   var head = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 14v-2a9 9 0 0118 0v2"/><path d="M21 16a2 2 0 01-2 2h-1v-5h1a2 2 0 012 2zM3 16a2 2 0 002 2h1v-5H5a2 2 0 00-2 2z"/></svg>';
   var calI = '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
   var micI = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8A7A68" stroke-width="2"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0014 0M12 17v4"/></svg>';
-  var clipI = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8A7A68" stroke-width="2"><path d="M21 12.5l-8.5 8.5a5 5 0 01-7-7l9-9a3.5 3.5 0 015 5l-9 9a2 2 0 01-3-3l8.5-8.5"/></svg>';
   var sendI = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
 
   var root = document.createElement("div"); root.id = "rdfw";
+  // The attachment clip has been strictly removed from the UI below to prevent broken requests
   root.innerHTML =
     '<style>' + css + '</style>' +
     '<button id="rdf-btn" aria-label="Chat with us">' + bubbleIcon + '</button>' +
@@ -151,10 +151,8 @@
       '<div id="rdf-body"></div>' +
       '<div id="rdf-chips"></div>' +
       '<div id="rdf-foot"><div id="rdf-inwrap"><input id="rdf-in" placeholder="Type a message" autocomplete="off"/>' +
-        '<button class="rdf-ic" id="rdf-mic" title="Voice">' + micI + '</button>' +
-        '<button class="rdf-ic" id="rdf-clip" title="Attach a file">' + clipI + '</button></div>' +
-        '<button id="rdf-send">' + sendI + '</button>' +
-        '<input id="rdf-file" type="file" accept="image/*,.pdf,.doc,.docx" style="display:none"/></div>' +
+        '<button class="rdf-ic" id="rdf-mic" title="Voice">' + micI + '</button></div>' +
+        '<button id="rdf-send">' + sendI + '</button></div>' +
     '</div>';
   document.body.appendChild(root);
 
@@ -400,8 +398,6 @@
   $("rdf-send").onclick = function () { var v = $("rdf-in").value; $("rdf-in").value = ""; sendMsg(v); };
   $("rdf-in").addEventListener("keydown", function (e) { if (e.key === "Enter") { var v = this.value; this.value = ""; sendMsg(v); } });
   $("rdf-mic").onclick = toggleMic;
-  $("rdf-clip").onclick = function () { $("rdf-file").click(); };
-  $("rdf-file").onchange = function (e) { var f = e.target.files[0]; if (!f) return; e.target.value = ""; push("user", "📎 " + f.name); sendMsg("I've attached a file: " + f.name); };
   
   // On page load behavior
   (function () {
