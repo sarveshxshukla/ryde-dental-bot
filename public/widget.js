@@ -108,7 +108,8 @@
     /* ---- armor: stop the host theme's button/link CSS bleeding into the widget ---- */
     "#rdfw button,#rdfw a,#rdfw input,#rdfw textarea{font-family:inherit!important;text-transform:none!important;letter-spacing:normal!important;text-shadow:none!important;margin:0!important;min-width:0!important;min-height:0!important;line-height:normal!important}" +
     "#rdfw #rdf-btn{width:60px!important;height:60px!important;padding:0!important;border:none!important;border-radius:50%!important;background:linear-gradient(135deg," + C.launch + "," + C.launchDeep + ")!important;box-shadow:0 10px 26px rgba(15,118,110,.45)!important}" +
-    "#rdfw #rdf-btn svg,#rdfw #rdf-head .av svg{display:block!important;width:20px!important;height:20px!important;opacity:1!important;visibility:visible!important}" +
+    "#rdfw #rdf-btn svg{display:block!important;width:30px!important;height:30px!important;opacity:1!important;visibility:visible!important}" +
+    "#rdfw #rdf-head .av svg{display:block!important;width:24px!important;height:24px!important;opacity:1!important;visibility:visible!important}" +
     "#rdfw svg{vertical-align:middle;max-width:none!important}" +
     "#rdfw .rdf-chip{background:#fff!important;color:" + C.teal + "!important;padding:6px 12px!important;font-size:13px!important;font-weight:500!important;border:1px solid " + C.line + "!important;border-radius:20px!important;width:auto!important;height:auto!important;box-shadow:none!important;text-align:center}" +
     "#rdfw .rdf-cta{background:#1FA463!important;color:#fff!important;padding:6px 12px!important;font-size:13px!important;font-weight:600!important;border:1px solid #1FA463!important;border-radius:20px!important;width:auto!important;height:auto!important;box-shadow:none!important}" +
@@ -123,8 +124,13 @@
     "#rdfw .rdf-seg button.on{background:" + C.teal + "!important;color:#EAFBF8!important;border-color:" + C.teal + "!important}";
 
   var spark = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2.2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>';
+  
+  // New chat bubble for the launcher
+  var bubbleIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="13" y2="13"/></svg>';
+  
   // Ryde Dental Family tooth-and-stars mark, bundled as a clean SVG (no external load)
   var toothLogo = '<svg viewBox="0 0 24 24" fill="none" stroke="#F17A31" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="width:34px;height:34px;display:block;margin:auto;"><path d="M8 3c-2.76 0-5 2.24-5 5 0 1.93 1.1 3.6 2.72 4.42L5 19c0 1.1.9 2 2 2 1.01 0 1.84-.75 1.98-1.75L10 13h4l1.02 6.25c.14 1 1.01 1.75 2.02 1.75 1.1 0 2-.9 2-2l-.72-6.58C19.9 11.6 21 9.93 21 8c0-2.76-2.24-5-5-5-1.8 0-3.38.96-4.24 2.42L12 5l-.76-1.58C10.38 3.96 8.8 3 8 3z"/><path d="M19 2l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#F17A31"/><path d="M23 7l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z" fill="#F17A31"/></svg>';
+  
   var sparkSm = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2.2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>';
   var head = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 14v-2a9 9 0 0118 0v2"/><path d="M21 16a2 2 0 01-2 2h-1v-5h1a2 2 0 012 2zM3 16a2 2 0 002 2h1v-5H5a2 2 0 00-2 2z"/></svg>';
   var calI = '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
@@ -135,7 +141,7 @@
   var root = document.createElement("div"); root.id = "rdfw";
   root.innerHTML =
     '<style>' + css + '</style>' +
-    '<button id="rdf-btn" aria-label="Chat with us">' + toothLogo + '</button>' +
+    '<button id="rdf-btn" aria-label="Chat with us">' + bubbleIcon + '</button>' +
     '<div id="rdf-panel">' +
       '<div id="rdf-head"><div class="av">' + toothLogo + '</div><div><div class="nm">Ryde Dental Family</div>' +
         '<div class="st"><span id="rdf-dot2" style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block"></span><span id="rdf-stt">Replies instantly</span></div></div>' +
