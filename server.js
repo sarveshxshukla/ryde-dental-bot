@@ -86,7 +86,11 @@ ONE QUESTION AT A TIME — ask a single thing per message and wait for the answe
 
 You are reception, NOT a dentist: never diagnose or give clinical/treatment advice. For pain, swelling or a broken tooth, tell them to call (02) 9807 9800 now. Never invent prices, facts or names beyond what's provided here - if unsure, say the team can confirm and offer to book or take a callback.
 
-CLINIC: Inside Top Ryde City Shopping Centre, Shop 2035, Level LG1 (lower ground), Tucker Street side, Ryde NSW 2112. Phone (02) 9807 9800, email rdftopryde@gmail.com, WhatsApp available. Open Mon-Fri 9am-5pm, Sat 9am-4pm, closed Sunday, with Thursday-evening after-hours. Payment plans available; can usually claim through private health funds. Gentle with nervous patients. Emergency care available.
+CLINIC: Inside Top Ryde City Shopping Centre, Shop 2035, Level LG1 (lower ground), Tucker Street side, Ryde NSW 2112. Phone (02) 9807 9800, email rdftopryde@gmail.com, WhatsApp available. Open Mon-Fri 9am-5pm, Sat 9am-4pm, closed Sunday, with Thursday-evening after-hours. 
+Parking: Top Ryde City offers 3 hours free parking. Best entry is via the Tucker Street car park to Level LG1.
+
+HEALTH FUNDS & MEDICARE: HICAPS available on-site for instant health fund claims. We accept all major Australian private health funds (Bupa, Medibank, HCF, NIB, CBHS, Teachers Health, etc.).
+Medicare: General adult dental is not covered by Medicare. However, we bulk bill eligible children under the Child Dental Benefits Schedule (CDBS - up to $1,095). We also treat DVA (Department of Veterans' Affairs) cardholders.
 
 TREATMENTS: check-ups & cleans, white fillings, extractions & wisdom teeth, root canals, dental implants (single, immediate, All-on-4), crowns & bridges, porcelain veneers, teeth whitening, Invisalign, dentures, gum/periodontal & LANAP laser treatment, gum lifts, night guards for grinding, children's dentistry, smile makeovers, sleep/sedation options.
 
@@ -96,7 +100,7 @@ TEAM:
 - Dr Fay Kong - General Dentist, Doctor of Dental Medicine (USyd). Holistic approach; interests in oral surgery and orthodontics.
 - Support: Sahar (Practice Manager) and dental assistants Sabrina, Vani, Pari.
 
-PRICING: never quote a number. Say it depends and needs a quick look, mention payment plans, and offer a consult or a callback for a proper quote.
+PRICING & PAYMENT PLANS: Never quote a number. Say it depends and needs a quick look. Flexible payment options available including Afterpay, Zip, and DentiCare/TLC medical payment plans. Offer a consult or a callback for a proper quote.
 
 FREE CONSULTATION OFFER: We offer a genuinely FREE consultation for dental implants and for Invisalign. Whenever someone shows any interest in implants or Invisalign (asks about them, cost, suitability, etc.), warmly let them know the consult is on us — frame it with care, e.g. "Because we really care about getting this right for you, we offer a complimentary (free) consultation for that — so you can explore your options with zero pressure." Then invite them to book that free consult.
 
@@ -165,7 +169,9 @@ async function geminiOnce(model, session, key) {
 }
 // Groq (OpenAI-compatible) — the free, very fast fallback used when Gemini is busy
 async function groqOnce(session) {
-  const messages = [{ role: "system", content: buildSystem(session) }]
+  // Force "JSON" into the top-level prompt to satisfy Llama 3.3 strict JSON constraints
+  const systemContent = buildSystem(session) + "\n\nCRITICAL: You must reply in valid JSON format.";
+  const messages = [{ role: "system", content: systemContent }]
     .concat(convoTurns(session).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.text })));
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -276,7 +282,7 @@ function emailLead(s, lead, type) {
   const body =
     "New " + label.w + " from the Smily chatbot:\n\n" +
     "Name: " + lead.name + "\n" +
-    "Mobile: " + lead.phone + "\n" +
+    "Phone: " + lead.phone + "\n" +
     "Email: " + (lead.email || "(not provided)") + "\n" +
     "Contacted about: " + (lead.service || "General enquiry") + "\n";
   s.emailedCount = s.messages ? s.messages.length : 0; 
@@ -335,11 +341,13 @@ app.post("/api/chat", async (req, res) => {
     s.messages.push({ role: "bot", text: out.reply, ts: Date.now() });
     if (out.action === "book" || out.action === "callback") {
       const type = out.action === "callback" ? "Callback" : "Booking";
-      // booking for someone ELSE → Gemini supplies a fresh name+phone; otherwise fall back to the details already on file
-      const gaveOther = out.lead && out.lead.name && out.lead.phone;
-      const name  = gaveOther ? out.lead.name  : (s.contact?.name  || out.lead?.name);
-      const phone = gaveOther ? out.lead.phone : (s.contact?.phone || out.lead?.phone);
-      const email = gaveOther ? (out.lead.email || "") : (s.contact?.email || "");
+      
+      // Individual evaluation to prevent details overwrite. 
+      // If AI provides a name, use it. If AI omits a phone, safely fall back to the on-file phone.
+      const name  = (out.lead && out.lead.name)  ? out.lead.name  : (s.contact?.name  || "");
+      const phone = (out.lead && out.lead.phone) ? out.lead.phone : (s.contact?.phone || "");
+      const email = (out.lead && out.lead.email) ? out.lead.email : (s.contact?.email || "");
+
       if (name && phone) {
         const norm = String(phone).replace(/\D/g, "");
         const dup = db.leads.some(l => l.type === type && String(l.phone).replace(/\D/g, "") === norm && (Date.now() - l.createdAt) < 6 * 3600 * 1000);
@@ -408,7 +416,7 @@ app.post("/api/lead", (req, res) => {
 // patient widget polls for staff replies / resume
 app.get("/api/poll", (req, res) => {
   const s = db.sessions[req.query.sessionId];
-  if (!s) return res.json({ mode: "ai", resumeAt: 0, events: [] });
+  if (!s) return res.json({ deleted: true }); // Pass explicit deleted flag if session was removed via admin
   maybeResume(s); sweepIdle(); save();
   const events = s.messages.filter(m => m.role === "team" || m.role === "system").map(m => ({ role: m.role, text: m.text, ts: m.ts }));
   res.json({ mode: s.mode, resumeAt: s.resumeAt, events });
@@ -587,7 +595,7 @@ app.post(["/api/start", "/api/register"], (req, res) => {
   const email = String(req.body?.email || "").trim().slice(0, 120);
   const message = String(req.body?.message || "").trim();
   const sessionId = req.body?.sessionId;
-  if (!sessionId || !name || !phone) return res.status(400).json({ error: "Name and mobile are required." });
+  if (!sessionId || !name || !phone) return res.status(400).json({ error: "Name and phone are required." });
   const s = getSession(sessionId);
   s.visitorName = name;
   s.contact = { name, phone, email };   // on file → Smily won't ask for these again
