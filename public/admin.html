@@ -619,8 +619,9 @@ function smsHref(p){ return "sms:"+String(p||"").replace(/[^\d+]/g,""); }
 function renderLeads(force){
   var all=DATA.leads||[];
   
-  var dStart = g("fDateStart").value ? new Date(g("fDateStart").value).getTime() : 0;
-  var dEnd = g("fDateEnd").value ? new Date(g("fDateEnd").value).getTime() + 86400000 : Infinity;
+  // FIX: Force timezone boundaries using local time, preventing data drift against UTC timestamps
+  var dStart = g("fDateStart").value ? new Date(g("fDateStart").value + "T00:00:00").getTime() : 0;
+  var dEnd = g("fDateEnd").value ? new Date(g("fDateEnd").value + "T23:59:59.999").getTime() : Infinity;
 
   var rows=all.filter(function(l){
     if(fType && (l.type||"Booking")!==fType) return false;
@@ -817,6 +818,8 @@ function buildReportUI(chats, cToday, cWeek, leads, bookings, cb, hum, byDowArr,
 
 function renderReports(){
   var st=DATA.stats; if(!st) return;
+  
+  // FIX: Force timezone boundaries using local time
   var startVal = g("repDateStart").value;
   var endVal = g("repDateEnd").value;
   
@@ -824,12 +827,12 @@ function renderReports(){
     // Show total stats from backend
     buildReportUI(st.chats, st.chatsToday, st.chatsWeek, st.leads, st.bookings, st.callbacks, st.humanTakeovers, st.byDow, st.topServices||[]);
   } else {
-    // Dynamically calculate based on downloaded window
-    var start = startVal ? new Date(startVal).getTime() : 0;
-    var end = endVal ? new Date(endVal).getTime() + 86400000 : Infinity;
+    // Dynamically calculate based on downloaded window using strict time bounds
+    var start = startVal ? new Date(startVal + "T00:00:00").getTime() : 0;
+    var end = endVal ? new Date(endVal + "T23:59:59.999").getTime() : Infinity;
     
-    var fLeads = (DATA.leads||[]).filter(function(l){ return l.createdAt >= start && l.createdAt < end; });
-    var fSess = (DATA.sessions||[]).filter(function(s){ return s.createdAt >= start && s.createdAt < end; });
+    var fLeads = (DATA.leads||[]).filter(function(l){ return l.createdAt >= start && l.createdAt <= end; });
+    var fSess = (DATA.sessions||[]).filter(function(s){ return s.createdAt >= start && s.createdAt <= end; });
     
     var rChats = fSess.length;
     var rLeads = fLeads.length;
