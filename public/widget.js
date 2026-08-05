@@ -142,6 +142,7 @@
   root.innerHTML =
     '<style>' + css + '</style>' +
     '<button id="rdf-btn" aria-label="Chat with us">' + bubbleIcon + '</button>' +
+    '<div id="rdf-pop"><span class="x" id="rdf-popx">&times;</span>Chat with us \uD83D\uDCAC</div>' +
     '<div id="rdf-panel">' +
       '<div id="rdf-head"><div class="av">' + toothLogo + '</div><div><div class="nm">Ryde Dental Family</div>' +
         '<div class="st"><span id="rdf-dot2" style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block"></span><span id="rdf-stt">Replies instantly</span></div></div>' +
@@ -159,6 +160,12 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var body = $("rdf-body"), chipsEl = $("rdf-chips");
+  
+  var pop = $("rdf-pop"), popx = $("rdf-popx");
+  var popDismissed = false;
+  if (popx) popx.onclick = function (e) { e.stopPropagation(); pop.className = ""; popDismissed = true; };
+  if (pop) pop.onclick = function () { pop.className = ""; $("rdf-btn").click(); };
+
   function persist() { try { localStorage.setItem(LOGKEY, JSON.stringify(msgs.slice(-60))); } catch (e) {} }
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function esc(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
@@ -342,7 +349,7 @@
     open = !open; $("rdf-panel").className = open ? "on" : "";
     $("rdf-btn").className = open ? "hidden" : "";
     if (open) {
-      var pp = $("rdf-pop"); if (pp) pp.className = "";
+      if (pop) pop.className = ""; // Hide nudge when panel opens
       prewarm();
       // If they haven't given details yet and there's no chat going, always show the intake form
       // (re-applies the fit sizing so there's no empty space, even on reopen).
@@ -359,30 +366,35 @@
       poll(); pollTimer = setInterval(poll, 4000);
     } else { clearInterval(pollTimer); }
   };
-  $("rdf-x").onclick = function () { open = false; $("rdf-panel").className = ""; $("rdf-btn").className = ""; clearInterval(pollTimer); };
+  
+  $("rdf-x").onclick = function () { 
+    open = false; 
+    $("rdf-panel").className = ""; 
+    $("rdf-btn").className = ""; 
+    clearInterval(pollTimer); 
+    
+    // User closed the panel -> Show the chat nudge so they know where to find us
+    if (!popDismissed) {
+      setTimeout(function() { if (!open) pop.className = "on"; }, 400);
+    }
+  };
+  
   $("rdf-book").onclick = openBook;
   $("rdf-send").onclick = function () { var v = $("rdf-in").value; $("rdf-in").value = ""; sendMsg(v); };
   $("rdf-in").addEventListener("keydown", function (e) { if (e.key === "Enter") { var v = this.value; this.value = ""; sendMsg(v); } });
   $("rdf-mic").onclick = toggleMic;
   $("rdf-clip").onclick = function () { $("rdf-file").click(); };
   $("rdf-file").onchange = function (e) { var f = e.target.files[0]; if (!f) return; e.target.value = ""; push("user", "📎 " + f.name); sendMsg("I've attached a file: " + f.name); };
-  // On page load: NEW visitors get the intake form popped open automatically (Birdeye style),
-  // so we capture their details up-front. It's fully closable via the panel's × (they can then browse),
-  // and it re-appears on the next page load. Visitors who've ALREADY given their details are not
-  // nagged with the form — they just get the small "Chat with us" nudge instead.
+  
+  // On page load behavior
   (function () {
     if (!intakeDone) {
       // auto-open the panel + intake form shortly after load
       setTimeout(function () { if (!open) $("rdf-btn").click(); }, 800);
-      return;
+    } else {
+      // returning visitor (already gave details) → gentle nudge only
+      setTimeout(function () { if (!open && !popDismissed) pop.className = "on"; }, 2500);
     }
-    // returning visitor (already gave details) → gentle nudge only
-    var pop = document.createElement("div"); pop.id = "rdf-pop";
-    pop.innerHTML = '<span class="x" id="rdf-popx">&times;</span>Chat with us \uD83D\uDCAC';
-    root.appendChild(pop);
-    function dismiss() { pop.className = ""; }
-    setTimeout(function () { if (!open) pop.className = "on"; }, 2500);
-    pop.onclick = function (e) { if (e.target && e.target.id === "rdf-popx") { dismiss(); return; } dismiss(); $("rdf-btn").click(); };
   })();
 
   prewarm();
