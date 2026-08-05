@@ -209,11 +209,10 @@ function parseReply(raw) {
       lead: o.lead && typeof o.lead === "object" ? o.lead : null,
     };
   } catch {
-    // JSON came back badly formed — salvage the reply text using a multi-line regex
+    // Multi-line regex extraction fallback
     const m = s.match(/"reply"\s*:\s*"([\s\S]*?)"(?=\s*(?:,|}$))/);
     
     if (m) {
-      // Clean up the extracted string
       const reply = m[1].replace(/\\"/g, '"').replace(/\\n/g, "\n").replace(/\\\\/g, "\\");
       let chips = [];
       
@@ -226,8 +225,8 @@ function parseReply(raw) {
       return { reply: reply, chips: chips, action: "none", lead: null };
     }
     
-    // Absolute worst-case scenario
-    return { reply: "Sorry, I had a hiccup — you can reach us on (02) 9807 9800.", chips: ["Book a visit", "Request a callback"], action: "none", lead: null };
+    // Absolute worst-case scenario: default to the booking CTA to avoid "hiccup" message entirely
+    return { reply: "You can easily book your appointment with Ryde Dental Family — just tap the button below and we'll look after you.", chips: [], action: "book", lead: null };
   }
 }
 
