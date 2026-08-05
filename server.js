@@ -28,10 +28,11 @@ const NOTIFY_ON = !!(NOTIFY_WEBHOOK_URL || WEB3FORMS_KEY);
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, "data.json"); // set DATA_FILE=/app/data/data.json on the VPS so leads/push survive redeploys
 
 /* -------------------- tiny JSON store -------------------- */
-let db = { sessions: {}, leads: [] };
+let db = { sessions: {}, leads: [], deletedSessions: [] };
 try { db = JSON.parse(fs.readFileSync(DATA_FILE, "utf8")); } catch {}
 db.sessions = db.sessions || {};
 db.leads = db.leads || [];
+db.deletedSessions = db.deletedSessions || [];
 db.contactMeta = db.contactMeta || {};                                  // per-contact notes + review-request status, keyed by phone digits
 db.reviewRequests = db.reviewRequests || [];                            // log of review-request emails we've sent
 db.settings = db.settings || { reviewLink: process.env.REVIEW_LINK || "" };
@@ -323,12 +324,26 @@ const auth = (req, res, next) => req.get("x-admin-token") === ADMIN_TOKEN ? next
 
 // patient -> bot
 app.post("/api/chat", async (req, res) => {
-  const { sessionId, message, attachment } = req.body || {};
+  const { sessionId, message, attachment, contact, history } = req.body || {};
   if (!sessionId || (!message && !attachment)) return res.status(400).json({ error: "missing fields" });
-  const s = getSession(sessionId); s.lastActivity = Date.now();
+  const s = getSession(sessionId); 
+
+  // Self-Healing logic: If server restarted and forgot the contact, restore from payload
+  if (contact && contact.name && (!s.contact || !s.contact.name)) {
+    s.contact = contact;
+    s.visitorName = contact.name;
+  }
+
+  // FIX: Self-Healing history adoption without duplicating the current user message
+  if (s.messages.length === 0 && Array.isArray(history)) {
+    s.messages = history.filter(m => m.text).map(m => ({ role: m.role, text: m.text, ts: m.ts }));
+  } else if (message) {
+    s.messages.push({ role: "user", text: String(message).slice(0, 2000), ts: Date.now() });
+  }
+
+  s.lastActivity = Date.now();
   sweepIdle();
-  if (attachment) s.messages.push({ role: "user", text: "Sent a file: " + String(attachment).slice(0, 120), ts: Date.now(), attach: true });
-  if (message) s.messages.push({ role: "user", text: String(message).slice(0, 2000), ts: Date.now() });
+  
   // WhatsApp-style: alert staff on EVERY visitor message, titled with their name once we've learned it
   if (s.skipNextPush) { s.skipNextPush = false; }
   else pushNotify(s.visitorName ? "\ud83d\udcac " + s.visitorName : "\ud83d\udcac New website message",
@@ -417,8 +432,16 @@ app.post("/api/lead", (req, res) => {
 
 // patient widget polls for staff replies / resume
 app.get("/api/poll", (req, res) => {
-  const s = db.sessions[req.query.sessionId];
-  if (!s) return res.json({ deleted: true }); // Pass explicit deleted flag if session was removed via admin
+  const sid = req.query.sessionId;
+  
+  // FIX: Only wipe client session if intentional admin deletion occurred
+  if (db.deletedSessions && db.deletedSessions.includes(sid)) {
+    return res.json({ deleted: true }); 
+  }
+  
+  const s = db.sessions[sid];
+  if (!s) return res.json({ mode: "ai", resumeAt: 0, events: [] });
+  
   maybeResume(s); sweepIdle(); save();
   const events = s.messages.filter(m => m.role === "team" || m.role === "system").map(m => ({ role: m.role, text: m.text, ts: m.ts }));
   res.json({ mode: s.mode, resumeAt: s.resumeAt, events });
@@ -503,8 +526,12 @@ app.post("/api/admin/conversation-delete", auth, (req, res) => {
   const sid = String(req.body?.sessionId || "");
   if (!sid) return res.status(400).json({ error: "missing sessionId" });
   
-  // FIXED: Delete the property from the object directly
   delete db.sessions[sid]; 
+  // FIX: Bound deletedSessions array to max 500 entries to prevent memory unbounded growth
+  if (!db.deletedSessions.includes(sid)) {
+    db.deletedSessions.push(sid);
+    if (db.deletedSessions.length > 500) db.deletedSessions.shift();
+  }
   
   save();
   res.json({ ok: true });
