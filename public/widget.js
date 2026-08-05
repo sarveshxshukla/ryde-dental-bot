@@ -277,7 +277,7 @@
     f.innerHTML = '<div class="rdf-fh">Book an appointment <button id="rdf-fx" aria-label="Close">&times;</button></div>' +
       '<div class="rdf-fb">' +
       '<input class="rdf-fi" id="bk-name" placeholder="Full name *"/>' +
-      '<input class="rdf-fi" id="bk-phone" placeholder="Phone * (e.g. 0412 345 678 or 02 9807 9800)" inputmode="tel"/>' +
+      '<input class="rdf-fi" id="bk-phone" placeholder="Phone * (e.g. 0412 345 678)" inputmode="tel"/>' +
       '<input class="rdf-fi" id="bk-email" placeholder="Email (optional)"/>' +
       '<select class="rdf-fi" id="bk-svc"><option value="">What do you need? *</option>' + svcs.map(function (o) { return '<option>' + o + '</option>'; }).join("") + '</select>' +
       '<select class="rdf-fi" id="bk-when"><option value="">When suits you?</option>' + whens.map(function (o) { return '<option>' + o + '</option>'; }).join("") + '</select>' +
@@ -314,7 +314,7 @@
       '<div class="rdf-it">Please share your details</div>' +
       '<div class="rdf-isub">\uD83D\uDD12 Your details are kept private and only used to help with your enquiry.</div>' +
       '<input class="rdf-fi" id="in-name" placeholder="Name *" autocomplete="name"/>' +
-      '<input class="rdf-fi" id="in-phone" placeholder="Phone * (e.g. 0412 345 678 or 02 9807 9800)" inputmode="tel" autocomplete="tel"/>' +
+      '<input class="rdf-fi" id="in-phone" placeholder="Phone * (e.g. 0412 345 678)" inputmode="tel" autocomplete="tel"/>' +
       '<input class="rdf-fi" id="in-email" placeholder="Email (optional)" inputmode="email" autocomplete="email"/>' +
       '<textarea class="rdf-fi rdf-ita" id="in-msg" placeholder="Your question *"></textarea>' +
       '<div class="rdf-ierr" id="in-err"></div>' +
