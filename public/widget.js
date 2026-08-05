@@ -18,16 +18,16 @@
   // editable greeting (set in the staff panel -> Settings). Falls back to the default if unset.
   var CFG_GREETING = "";
   try { fetch(API + "/api/config").then(function (r) { return r.json(); }).then(function (c) { if (c && c.greeting) CFG_GREETING = c.greeting; }).catch(function () {}); } catch (e) {}
-  // --- Australian mobile validation -------------------------------------------------
-  // Accepts: 04xx xxx xxx | 04xxxxxxxx | +614xxxxxxxx | 614xxxxxxxx | 4xxxxxxxx
-  // Ignores spaces, dashes, brackets and dots. Rejects landlines and junk.
-  function auMobile(raw) {
+  
+  // --- Australian phone validation (Mobiles & Landlines) ---
+  function auPhone(raw) {
     var d = String(raw || "").replace(/[\s\-().]/g, "");
     if (d.indexOf("+61") === 0) d = "0" + d.slice(3);
     else if (d.indexOf("0061") === 0) d = "0" + d.slice(4);
     else if (d.indexOf("61") === 0 && d.length === 11) d = "0" + d.slice(2);
-    else if (d.length === 9 && d.charAt(0) === "4") d = "0" + d;
-    return /^04\d{8}$/.test(d) ? d : null;   // returns the tidy 04xxxxxxxx form, or null
+    // If they typed 9 digits starting with 4 (mobile) or 2,3,7,8 (landline), prepend the 0
+    else if (d.length === 9 && (d.charAt(0) === "4" || /^[2378]/.test(d))) d = "0" + d;
+    return /^(0[23478]\d{8})$/.test(d) ? d : null; 
   }
 
   function greet(fn) {
@@ -242,6 +242,23 @@
     try {
       var r = await fetch(API + "/api/poll?sessionId=" + encodeURIComponent(SID));
       var d = await r.json();
+      
+      if (d.deleted) {
+        msgs = [];
+        seen = {};
+        rendered = {};
+        localStorage.removeItem(LOGKEY);
+        body.innerHTML = "";
+        chipsEl.innerHTML = "";
+        clearInterval(pollTimer);
+        started = false;
+        if (open) {
+          push("bot", CFG_GREETING ? greet(savedName ? savedName.split(" ")[0] : "") : ("Welcome back" + (savedName ? ", " + savedName.split(" ")[0] : "") + "! 😊 How can I help you today?"), { chips: ["Book a visit", "Meet the dentists", "Tooth pain", "Opening hours"] });
+          pollTimer = setInterval(poll, 4000);
+        }
+        return;
+      }
+
       if (d.mode) setMode(d.mode);
       var fresh = false;
       (d.events || []).forEach(function (ev) { if (seen[ev.ts]) return; seen[ev.ts] = 1; msgs.push({ role: ev.role, text: ev.text, ts: ev.ts }); fresh = true; });
@@ -260,7 +277,7 @@
     f.innerHTML = '<div class="rdf-fh">Book an appointment <button id="rdf-fx" aria-label="Close">&times;</button></div>' +
       '<div class="rdf-fb">' +
       '<input class="rdf-fi" id="bk-name" placeholder="Full name *"/>' +
-      '<input class="rdf-fi" id="bk-phone" placeholder="Mobile * (e.g. 0412 345 678)" inputmode="tel"/>' +
+      '<input class="rdf-fi" id="bk-phone" placeholder="Phone * (e.g. 0412 345 678 or 02 9807 9800)" inputmode="tel"/>' +
       '<input class="rdf-fi" id="bk-email" placeholder="Email (optional)"/>' +
       '<select class="rdf-fi" id="bk-svc"><option value="">What do you need? *</option>' + svcs.map(function (o) { return '<option>' + o + '</option>'; }).join("") + '</select>' +
       '<select class="rdf-fi" id="bk-when"><option value="">When suits you?</option>' + whens.map(function (o) { return '<option>' + o + '</option>'; }).join("") + '</select>' +
@@ -273,9 +290,9 @@
     $("rdf-fx").onclick = closeBook;
     $("bk-send").onclick = function () {
       var name = $("bk-name").value.trim(), phone = $("bk-phone").value.trim(), email = $("bk-email").value.trim(), svc = $("bk-svc").value, when = $("bk-when").value;
-      if (!name || !phone || !svc) { $("bk-send").textContent = "Please add name, mobile & service"; return; }
-      var bkP = auMobile(phone);
-      if (!bkP) { $("bk-send").textContent = "Enter a valid AU mobile (0412 345 678)"; setTimeout(function () { $("bk-send").textContent = "Request appointment"; }, 2600); try { $("bk-phone").focus(); } catch (e) {} return; }
+      if (!name || !phone || !svc) { $("bk-send").textContent = "Please add name, phone & service"; return; }
+      var bkP = auPhone(phone);
+      if (!bkP) { $("bk-send").textContent = "Enter a valid AU phone number"; setTimeout(function () { $("bk-send").textContent = "Request appointment"; }, 2600); try { $("bk-phone").focus(); } catch (e) {} return; }
       phone = bkP;
       $("bk-send").textContent = "Sending…"; $("bk-send").disabled = true;
       fetch(API + "/api/book", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: SID, name: name, phone: phone, email: email, service: svc, when: when, patientType: pt }) })
@@ -297,7 +314,7 @@
       '<div class="rdf-it">Please share your details</div>' +
       '<div class="rdf-isub">\uD83D\uDD12 Your details are kept private and only used to help with your enquiry.</div>' +
       '<input class="rdf-fi" id="in-name" placeholder="Name *" autocomplete="name"/>' +
-      '<input class="rdf-fi" id="in-phone" placeholder="Mobile * (e.g. 0412 345 678)" inputmode="tel" autocomplete="tel"/>' +
+      '<input class="rdf-fi" id="in-phone" placeholder="Phone * (e.g. 0412 345 678 or 02 9807 9800)" inputmode="tel" autocomplete="tel"/>' +
       '<input class="rdf-fi" id="in-email" placeholder="Email (optional)" inputmode="email" autocomplete="email"/>' +
       '<textarea class="rdf-fi rdf-ita" id="in-msg" placeholder="Your question *"></textarea>' +
       '<div class="rdf-ierr" id="in-err"></div>' +
@@ -310,9 +327,9 @@
   function submitIntake() {
     var name = $("in-name").value.trim(), phone = $("in-phone").value.trim(), email = $("in-email").value.trim(), msg = $("in-msg").value.trim();
     var err = $("in-err");
-    if (!name || !phone || !msg) { err.textContent = "Please add your name, mobile and your question."; return; }
-    var auP = auMobile(phone);
-    if (!auP) { err.textContent = "That mobile doesn\u2019t look right \u2014 please enter an Australian mobile, e.g. 0412 345 678."; try { $("in-phone").focus(); } catch (e) {} return; }
+    if (!name || !phone || !msg) { err.textContent = "Please add your name, phone and your question."; return; }
+    var auP = auPhone(phone);
+    if (!auP) { err.textContent = "That phone number doesn't look right — please enter an Australian mobile or landline."; try { $("in-phone").focus(); } catch (e) {} return; }
     phone = auP;
     if (email && !/.+@.+\..+/.test(email)) { err.textContent = "That email doesn't look right."; return; }
     $("in-send").textContent = "Starting…"; $("in-send").disabled = true;
