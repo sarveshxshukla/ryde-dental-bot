@@ -15,17 +15,14 @@
   msgs.forEach(function (m) { if (m.ts) seen[m.ts] = 1; });
   var mode = "ai", open = false, started = false, listening = false, recog = null, pollTimer = null;
 
-  // editable greeting (set in the staff panel -> Settings). Falls back to the default if unset.
   var CFG_GREETING = "";
   try { fetch(API + "/api/config").then(function (r) { return r.json(); }).then(function (c) { if (c && c.greeting) CFG_GREETING = c.greeting; }).catch(function () {}); } catch (e) {}
   
-  // --- Australian phone validation (Mobiles & Landlines) ---
   function auPhone(raw) {
     var d = String(raw || "").replace(/[\s\-().]/g, "");
     if (d.indexOf("+61") === 0) d = "0" + d.slice(3);
     else if (d.indexOf("0061") === 0) d = "0" + d.slice(4);
     else if (d.indexOf("61") === 0 && d.length === 11) d = "0" + d.slice(2);
-    // If they typed 9 digits starting with 4 (mobile) or 2,3,7,8 (landline), prepend the 0
     else if (d.length === 9 && (d.charAt(0) === "4" || /^[2378]/.test(d))) d = "0" + d;
     return /^(0[23478]\d{8})$/.test(d) ? d : null; 
   }
@@ -36,7 +33,7 @@
   }
 
   var C = { teal: "#F17A31", tealDeep: "#C56428", coral: "#F17A31", coralDeep: "#C56428",
-    launch: "#0F766E", launchDeep: "#115E59",   // launcher bubble — deliberately NOT the site orange, so it stands out
+    launch: "#0F766E", launchDeep: "#115E59",   
     ink: "#38291B", mint: "#FAEFE1", line: "#ECE2D4", muted: "#8A7A68", bg: "#FBF6EF" };
 
   var css = "" +
@@ -125,12 +122,8 @@
 
   var spark = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2.2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>';
   
-  // New chat bubble for the launcher
   var bubbleIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="13" y2="13"/></svg>';
-  
-  // Ryde Dental Family tooth-and-stars mark, bundled as a clean SVG (no external load)
   var toothLogo = '<svg viewBox="0 0 24 24" fill="none" stroke="#F17A31" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="width:34px;height:34px;display:block;margin:auto;"><path d="M8 3c-2.76 0-5 2.24-5 5 0 1.93 1.1 3.6 2.72 4.42L5 19c0 1.1.9 2 2 2 1.01 0 1.84-.75 1.98-1.75L10 13h4l1.02 6.25c.14 1 1.01 1.75 2.02 1.75 1.1 0 2-.9 2-2l-.72-6.58C19.9 11.6 21 9.93 21 8c0-2.76-2.24-5-5-5-1.8 0-3.38.96-4.24 2.42L12 5l-.76-1.58C10.38 3.96 8.8 3 8 3z"/><path d="M19 2l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" fill="#F17A31"/><path d="M23 7l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z" fill="#F17A31"/></svg>';
-  
   var sparkSm = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2.2"><path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15l-1.9-4.1L5.5 9l4.6-1.4L12 3z"/></svg>';
   var head = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 14v-2a9 9 0 0118 0v2"/><path d="M21 16a2 2 0 01-2 2h-1v-5h1a2 2 0 012 2zM3 16a2 2 0 002 2h1v-5H5a2 2 0 00-2 2z"/></svg>';
   var calI = '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
@@ -138,7 +131,6 @@
   var sendI = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#EAFBF8" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
 
   var root = document.createElement("div"); root.id = "rdfw";
-  // The attachment clip has been strictly removed from the UI below to prevent broken requests
   root.innerHTML =
     '<style>' + css + '</style>' +
     '<button id="rdf-btn" aria-label="Chat with us">' + bubbleIcon + '</button>' +
@@ -228,7 +220,6 @@
     chipsEl.innerHTML = "";
     typing(true);
     
-    // FIX: Attach contact details and history so the server self-heals if it restarted
     var payload = { sessionId: SID, message: text };
     if (savedContact) payload.contact = savedContact;
     if (msgs.length > 0) payload.history = msgs;
@@ -266,7 +257,7 @@
       if (d.mode) setMode(d.mode);
       var fresh = false;
       (d.events || []).forEach(function (ev) { if (seen[ev.ts]) return; seen[ev.ts] = 1; msgs.push({ role: ev.role, text: ev.text, ts: ev.ts }); fresh = true; });
-      if (fresh) { persist(); sync(); }   // append ONLY the new staff/system messages
+      if (fresh) { persist(); sync(); }   
     } catch (e) {}
   }
 
@@ -348,13 +339,12 @@
         body.className = "";
         $("rdf-foot").style.display = ""; chipsEl.style.display = "";
         var fn = name.split(" ")[0];
-        if (msg) { push("bot", "Hi " + fn + "! 👋", {}); sendMsg(msg); }   // greet by name, then answer their question
-        else push("bot", greet(fn), { chips: ["Book a visit", "Meet the dentists", "Opening hours", "Tooth pain"] });
+        if (msg) { push("bot", "Hi " + fn + "! 👋", {}); sendMsg(msg); }   
+        else push("bot", greet(fn), { chips: ["Book a visit", "Meet the dentists", "Tooth pain", "Opening hours"] });
       })
       .catch(function () { $("in-send").textContent = "Try again"; $("in-send").disabled = false; });
   }
 
-  // --- voice ---
   function toggleMic() {
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { push("system", "Voice needs Chrome or Edge — type away instead."); return; }
@@ -370,16 +360,14 @@
     open = !open; $("rdf-panel").className = open ? "on" : "";
     $("rdf-btn").className = open ? "hidden" : "";
     if (open) {
-      if (pop) pop.className = ""; // Hide nudge when panel opens
+      if (pop) pop.className = ""; 
       prewarm();
-      // If they haven't given details yet and there's no chat going, always show the intake form
-      // (re-applies the fit sizing so there's no empty space, even on reopen).
       if (!intakeDone && !msgs.length) { started = true; showIntake(); }
       else if (!started) {
         started = true;
-        if (msgs.length) sync();                                  // returning visitor with chat history
-        else if (!intakeDone) showIntake();                       // first time → capture details before chatting
-        else { // returning visitor → quietly refresh their details on the server so the assistant still knows them
+        if (msgs.length) sync();                                  
+        else if (!intakeDone) showIntake();                       
+        else { 
           try { fetch(API + "/api/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: SID, name: savedContact.name, phone: savedContact.phone, email: savedContact.email, silent: true }) }).catch(function(){}); } catch (e) {}
           push("bot", CFG_GREETING ? greet(savedName ? savedName.split(" ")[0] : "") : ("Welcome back" + (savedName ? ", " + savedName.split(" ")[0] : "") + "! 😊 How can I help you today?"), { chips: ["Book a visit", "Meet the dentists", "Tooth pain", "Opening hours"] });
         }
@@ -394,7 +382,6 @@
     $("rdf-btn").className = ""; 
     clearInterval(pollTimer); 
     
-    // User closed the panel -> Show the chat nudge so they know where to find us
     if (!popDismissed) {
       setTimeout(function() { if (!open) pop.className = "on"; }, 400);
     }
@@ -403,15 +390,12 @@
   $("rdf-book").onclick = openBook;
   $("rdf-send").onclick = function () { var v = $("rdf-in").value; $("rdf-in").value = ""; sendMsg(v); };
   $("rdf-in").addEventListener("keydown", function (e) { if (e.key === "Enter") { var v = this.value; this.value = ""; sendMsg(v); } });
-  $("rdf-mic").onclick = toggleMic;
+  if ($("rdf-mic")) $("rdf-mic").onclick = toggleMic;
   
-  // On page load behavior
   (function () {
     if (!intakeDone) {
-      // auto-open the panel + intake form shortly after load
       setTimeout(function () { if (!open) $("rdf-btn").click(); }, 800);
     } else {
-      // returning visitor (already gave details) → gentle nudge only
       setTimeout(function () { if (!open && !popDismissed) pop.className = "on"; }, 2500);
     }
   })();
